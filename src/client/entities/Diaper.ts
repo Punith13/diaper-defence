@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
+import { AssetManager } from '../assets';
 
 /**
  * Diaper entity controlled by the player to catch falling poop projectiles
@@ -20,10 +21,16 @@ export class Diaper extends Entity {
     y: number = -240,
     bounds: { left: number; right: number } = { left: -350, right: 350 }
   ) {
-    // Create diaper sprite using PlaneGeometry
+    // Create diaper sprite using PlaneGeometry with texture
     const geometry = new THREE.PlaneGeometry(80, 40);
+    
+    // Try to get texture from AssetManager, fallback to solid color
+    const assetManager = AssetManager.getInstance();
+    const diaperTexture = assetManager.getTexture('diaper');
+    
     const material = new THREE.MeshBasicMaterial({ 
-      color: 0xFFFFFF, // White color for diaper
+      map: diaperTexture || null,
+      color: diaperTexture ? 0xffffff : 0xFFFFFF, // White in both cases
       transparent: true,
       opacity: 1.0
     });

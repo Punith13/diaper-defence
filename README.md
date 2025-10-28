@@ -4,26 +4,40 @@ A hilarious arcade-style mini-game built for Reddit using Three.js and Devvit. C
 
 ## What is Diaper Defense?
 
-Diaper Defense is a fully playable, fast-paced arcade game where players control a diaper at the bottom of the screen to catch various types of falling poop projectiles shot by a baby at the top. The game features:
+Diaper Defense is a fully playable, fast-paced arcade game where players control a diaper at the bottom of the screen to catch various types of falling poop projectiles shot by a crying baby at the top. This absurdly entertaining game combines strategic gameplay with Reddit's signature humor, creating an addictive experience that's perfect for quick gaming sessions within Reddit posts.
 
-- **Complete Gameplay Loop**: Fully functional game with AABB collision detection, comprehensive scoring system, miss tracking, and proper game over conditions
+### Core Game Features
+
+- **Complete Gameplay Loop**: Fully functional game with precise AABB collision detection, comprehensive scoring system, miss tracking, and balanced game over conditions
 - **Dynamic Difficulty Scaling**: Baby shooting rate increases by 10% every 15 seconds (minimum 500ms), and fancy poop probability scales with score (5% increase per 100 points)
-- **Three Distinct Poop Types**: Regular brown poop (10 points), fancy golden poop (50 points), and dangerous pink boob poop (instant game over)
+- **Three Distinct Poop Types**: 
+  - Regular brown poop (10 points, 70% spawn rate)
+  - Fancy golden poop (50 points, 25% base spawn rate, increases with score)
+  - Dangerous pink boob poop (instant game over, constant 5% spawn rate)
 - **Advanced Movement System**: Exponential smoothing interpolation with enhanced input validation, boundary checking, and responsive cross-platform controls
 - **Sophisticated Input Handling**: Optimized keyboard controls (arrow keys) and touch controls with 15-pixel dead zones, sensitivity scaling, and input prioritization
 - **Rich Visual Effects**: Three.js animations including baby sine wave oscillation, diaper bobbing, enhanced shooting animations with multi-phase effects, particle effects for catches/misses, and smooth 2D-style rendering
 - **Polished UI System**: Animated splash screen with gradient backgrounds, real-time HUD with live score/miss updates, and game over screen with restart functionality
 - **Advanced Particle System**: Visual feedback with sparkle effects for catches, splash effects for misses, puff effects for shooting, and score pop animations with different patterns based on poop types
+- **Immersive Audio Experience**: Complete Web Audio API integration with contextual sound effects (plop, splat, sploot, fail), procedural background music system, and dynamic audio generation
 
-## What Makes This Game Unique?
+## What Makes This Game Innovative?
 
-1. **Reddit-Native Gaming**: Built specifically for the Devvit platform, allowing seamless play within Reddit posts with automatic post creation and Reddit user integration
-2. **Strategic Risk-Reward Mechanics**: Players must make split-second decisions whether to go for high-value fancy poop while avoiding the instant-death boob poop
-3. **Intelligent Adaptive Difficulty**: The game becomes progressively more challenging with faster shooting rates and increasing fancy poop probability, creating a natural skill curve
-4. **Mobile-First Design Philosophy**: Optimized for Reddit's mobile-heavy user base with touch drag controls, dead zones, responsive design, and viewport handling
-5. **Absurdist Humor**: A lighthearted, ridiculous concept that perfectly matches Reddit's community culture and meme-friendly environment
-6. **Technical Innovation**: Uses Three.js orthographic camera to create buttery-smooth 2D-style gameplay with 3D rendering capabilities and advanced particle systems
-7. **Enhanced Animation System**: Multi-phase baby shooting animations with anticipation, burst, shake, and recovery phases create dramatic visual feedback
+1. **Reddit-Native Gaming Experience**: Built specifically for the Devvit platform, allowing seamless play within Reddit posts with automatic post creation and Reddit user integration - no external links or downloads required
+
+2. **Strategic Risk-Reward Mechanics**: Players must make split-second decisions whether to go for high-value fancy poop while avoiding the instant-death boob poop, creating intense moment-to-moment gameplay
+
+3. **Intelligent Adaptive Difficulty**: The game becomes progressively more challenging with faster shooting rates and increasing fancy poop probability, creating a natural skill curve that keeps players engaged
+
+4. **Mobile-First Design Philosophy**: Optimized for Reddit's mobile-heavy user base with touch drag controls, dead zones, responsive design, and viewport handling that works flawlessly across devices
+
+5. **Absurdist Humor with Heart**: A lighthearted, ridiculous concept that perfectly matches Reddit's community culture and meme-friendly environment while delivering genuinely engaging gameplay
+
+6. **Technical Innovation**: Uses Three.js orthographic camera to create buttery-smooth 2D-style gameplay with 3D rendering capabilities, advanced particle systems, and procedural audio generation
+
+7. **Enhanced Animation System**: Multi-phase baby shooting animations with anticipation, burst, shake, and recovery phases create dramatic visual feedback that makes every action feel impactful
+
+8. **Procedural Audio Design**: Complete Web Audio API integration with contextual sound effects, procedural audio generation, and dynamic background music that responds to game events without requiring external audio files
 
 ## Technology Stack
 
@@ -40,92 +54,65 @@ Catch as many falling poop projectiles as possible with your diaper while avoidi
 
 ### Step-by-Step Instructions
 
-1. **Starting the Game**
-   - Click the animated "Play Now" button on the splash screen to begin
-   - The splash screen features an engaging title "Diaper Defense" with subtitle "The Ultimate Baby Poop Catching Game!"
-   - Feature badges highlight "🍼 Arcade Action", "📱 Mobile Friendly", and "🏆 High Scores"
-   - The game smoothly transitions to full gameplay mode with the HUD visible at the top
-   - You'll see your diaper (white rectangle) at the bottom and the baby (light pink square) oscillating at the top
-   - The sky blue background (#87CEEB) and brown ground line create the game arena
+#### 1. **Starting Your Adventure**
+   - Click the animated "Play Now" button on the splash screen to begin your poop-catching journey
+   - The splash screen welcomes you with "Diaper Defense: The Ultimate Baby Poop Catching Game!"
+   - Feature badges showcase "🍼 Arcade Action", "📱 Mobile Friendly", and "🏆 High Scores"
+   - The game smoothly transitions to full gameplay with the HUD displaying your score and miss count
+   - Audio system automatically initializes with upbeat background music and sound effects
+   - You'll see your white diaper at the bottom and the pink baby oscillating at the top
+   - The sky blue background and brown ground line create your poop-catching arena
 
-2. **Mastering the Controls**
-   - **Desktop Controls**: Use the left (←) and right (→) arrow keys to move your diaper horizontally
-     - Exponential smoothing interpolation provides natural, responsive movement with 8.0 smoothing factor
-     - Enhanced boundary validation prevents the diaper from moving outside the play area
-     - Keys are optimized with proper focus management and prevent unwanted page scrolling
-     - Movement speed automatically adapts to diaper speed (15% per key press) for optimal control precision
-     - Maximum speed limit prevents overshooting during rapid movement
-   - **Mobile Controls**: Touch and drag left or right anywhere on the screen to move your diaper
-     - Advanced touch handling with 15-pixel dead zone prevents accidental movements
-     - Sensitivity scaling (1.5x multiplier) ensures responsive touch control
-     - Input validation prevents invalid movements outside canvas bounds
-     - Smooth absolute positioning maps touch coordinates to world coordinates for precise control
-     - Touch input takes priority when both keyboard and touch are active
-   - The diaper moves with buttery-smooth exponential smoothing and includes enhanced bobbing animation with multiple wave components for visual appeal
+#### 2. **Mastering the Controls**
+   - **Desktop Players**: Use left (←) and right (→) arrow keys to move your diaper
+     - Smooth exponential movement provides natural, responsive control
+     - Enhanced boundary validation keeps you in the play area
+     - Optimized for rapid movements without overshooting
+   - **Mobile Players**: Touch and drag anywhere on screen to move your diaper
+     - 15-pixel dead zone prevents accidental movements
+     - Sensitivity scaling ensures responsive touch control
+     - Smooth positioning maps your touch to precise diaper movement
+   - The diaper features a gentle bobbing animation and moves with buttery-smooth interpolation
 
-3. **Understanding the Poop Arsenal**
-   - **Brown Poop (Regular)**: Worth 10 points each - starts at 70% spawn probability
-     - The bread and butter of your score - safe to catch and reliable points
-     - Brown color (#8B4513) makes them easy to identify
-     - Creates standard sparkle and score pop particle effects when caught
-   - **Golden Poop (Fancy)**: Worth 50 points each - starts at 25% probability, increases by 5% every 100 points you score
-     - High-value targets that become more common as you improve
-     - Shimmering gold color (#FFD700) makes them stand out
-     - Creates spectacular particle effects with multiple sparkle bursts and delayed celebration effects
-     - Risk vs reward: worth going for, but don't compromise your safety
-   - **Pink Poop (Boob)**: Instant game over - constant 5% spawn probability throughout the game
-     - Hot pink color (#FF69B4) serves as a danger warning
-     - Avoid at all costs - catching one immediately ends your game regardless of your miss count
-     - Creates ominous splash effects and warning particles before triggering game over
-   - All poop projectiles fall at slightly randomized speeds (±25 unit variation) with rotation animation for visual variety
+#### 3. **Know Your Poop Types**
+   - **🟤 Brown Poop (Regular)**: 10 points each, 70% spawn rate
+     - Your reliable source of points - safe to catch
+     - Creates sparkle effects and plays satisfying "plop" sound
+   - **🟡 Golden Poop (Fancy)**: 50 points each, 25% base rate (increases with score)
+     - High-value targets worth the risk
+     - Creates spectacular particle bursts and special sound effects
+     - Becomes more common as you score higher (5% increase per 100 points)
+   - **🩷 Pink Poop (Boob)**: INSTANT GAME OVER, 5% spawn rate
+     - Avoid at all costs! Catching one immediately ends your game
+     - Creates ominous effects and warning sounds
+     - Constant threat throughout the game
 
-4. **Advanced Game Mechanics**
-   - **Baby Behavior**: The baby oscillates horizontally using smooth sine wave motion across the top of the screen
-     - Oscillation amplitude of 150 units with speed of 2 units creates predictable but dynamic movement
-     - Baby shoots poop at random intervals starting at 2000ms, with ±50% variation (1000-3000ms range)
-     - Enhanced shooting animation with 4 phases: anticipation (scale down), burst (scale up + crying), intense shake with rotation, and recovery bounce-back
-   - **Progressive Difficulty**: Every 15 seconds, the shooting interval decreases by 10% (minimum 500ms for maximum challenge)
-     - This creates a natural difficulty curve that rewards survival and skill development
-     - Advanced players will face rapid-fire poop barrages in later stages
-   - **Enhanced Visual Feedback System**: 
-     - Baby plays multi-phase shooting animations with anticipation, crying effects, variable intensity shaking, and rotation
-     - Diaper responds with simplified catch animations (brief scale and brightness flash) and miss animations (red flash feedback)
-     - Particle effects provide immediate feedback with different patterns: sparkles for catches, splashes for misses, puffs for shooting
-   - **Miss Tracking System**: You can miss up to 2 poop projectiles before the game ends
-     - Consecutive misses are tracked separately from total misses for strategic gameplay
-     - Successfully catching any poop resets your consecutive miss counter
-     - HUD displays both total misses and consecutive misses: "Misses: X (Y consecutive)"
-   - **Real-time HUD**: Score and detailed miss information are displayed live in the top corners with smooth animations
-   - **Precision Collision Detection**: AABB (Axis-Aligned Bounding Box) collision detection ensures fair and responsive gameplay
+#### 4. **Understanding Game Mechanics**
+   - **Baby Behavior**: The baby oscillates smoothly across the top using sine wave motion
+     - Shoots poop at random intervals (starting at 1-3 seconds)
+     - Features dramatic 4-phase shooting animation: anticipation → burst → shake → recovery
+   - **Progressive Difficulty**: Every 15 seconds, shooting speed increases by 10%
+     - Creates natural difficulty curve from casual to intense
+     - Minimum 500ms interval ensures maximum challenge is still playable
+   - **Miss System**: You can miss up to 2 consecutive poop projectiles
+     - Total misses and consecutive misses are tracked separately
+     - Catching any poop resets your consecutive miss counter
+     - HUD shows: "Misses: X (Y consecutive)"
+   - **Collision Detection**: Precise AABB system ensures fair gameplay
 
-5. **Game Over Conditions & Recovery**
-   - **Instant Death Scenario**: Catch a pink boob poop (immediate game over regardless of your current miss count)
-     - Creates dramatic particle effects with multiple splash bursts
-   - **Miss Limit Scenario**: Miss 2 poop projectiles consecutively (they fall off the bottom of the screen)
-     - Enhanced miss effects with different particle patterns based on poop type
-   - **Game Over Experience**: Smooth transition to game over screen with brown semi-transparent background
-     - Shows final score with "Game Over!" title in light pink and "Play Again" button
-     - Includes shake animation effects for dramatic game over presentation
-   - **Quick Restart**: The restart system preserves your momentum - click "Play Again" to immediately jump back into action
+#### 5. **Game Over Scenarios**
+   - **Instant Death**: Catch a pink boob poop (immediate game over)
+   - **Miss Limit**: Miss 2 poop projectiles in a row
+   - **Recovery**: Click "Play Again" to restart immediately with full audio-visual experience
 
-6. **Pro Strategy Guide**
-   - **Optimal Positioning**: Stay centered under the baby's oscillation path for maximum coverage area
-     - The baby's sine wave motion is predictable - learn the pattern to anticipate poop trajectories
-   - **Risk Management Philosophy**: Always prioritize avoiding pink boob poop over catching any other type
-     - Better to miss a golden poop than accidentally catch a boob poop
-   - **Animation Reading**: Watch for the baby's enhanced 4-phase shooting animation to predict incoming projectiles
-     - Anticipation phase (scale down) gives early warning
-     - Burst phase (scale up + crying) indicates imminent poop launch
-     - Use the shake and recovery phases to position for the next shot
-   - **High-Value Target Acquisition**: Actively pursue golden poop when the path is clear
-     - The 50-point bonus becomes increasingly common (5% increase per 100 points), making late-game golden poop very frequent
-     - Golden poop creates spectacular visual rewards with multiple particle bursts
-   - **Speed Adaptation Strategy**: As the game accelerates, shift focus from catching everything to selective, high-value catches
-     - Survival becomes more important than score maximization in later stages
-   - **Platform-Specific Tips**:
-     - **Desktop**: Use quick, precise arrow key taps rather than holding keys for better control
-     - **Mobile**: Use smooth drag movements rather than rapid tapping for more accurate positioning
-     - **Cross-Platform**: Learn to read the enhanced particle effects - they provide crucial feedback about your performance and poop types
+#### 6. **Pro Tips for High Scores**
+   - **Stay Centered**: Position yourself under the baby's oscillation path
+   - **Risk Management**: Always avoid pink poop, even if it means missing golden ones
+   - **Read Animations**: Use the baby's 4-phase shooting sequence to predict trajectories
+   - **Adapt to Speed**: Focus on survival over score maximization in later stages
+   - **Platform Optimization**:
+     - Desktop: Use quick, precise key taps for better control
+     - Mobile: Use smooth drag movements for accurate positioning
 
 ## Getting Started
 
@@ -193,8 +180,17 @@ The game uses a modular entity-component architecture:
   - Comprehensive CSS animations including fade, scale, slide, bounce, shake, and pulse effects
 - **Cross-Platform Excellence**: Mobile-first responsive design with touch-optimized controls, viewport handling, and responsive breakpoints
 
+- **Complete Audio System**: 
+  - Web Audio API integration with AudioManager singleton for optimal performance
+  - Comprehensive sound effects: "plop" for catches, "splat" for misses, "sploot" for baby shooting, "fail" for game over
+  - Background music system with looping capabilities and volume controls
+  - Audio context management with user interaction handling for browser compatibility
+  - Procedural sound generation with MusicGenerator and SoundGenerator for dynamic audio
+  - Master volume, SFX volume, and music volume controls with real-time adjustment
+  - Graceful fallback system with silent buffers for failed audio loads
+  - Audio state tracking and context resumption after user interaction
+
 🚧 **Future Enhancement Opportunities:**
-- Audio system with immersive sound effects and background music
 - Asset management system with custom textures and sprites
 - Performance optimizations including object pooling for projectiles
 - Server-side score persistence and community leaderboards

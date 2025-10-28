@@ -92,34 +92,42 @@
     - Create smooth transitions between game states
     - _Requirements: 2.5, 6.1, 6.2, 6.3_
 
-- [ ] 6. Implement audio system
-  - [ ] 6.1 Set up Web Audio API integration
-    - Create AudioManager class with sound loading capabilities
-    - Implement audio context management and user interaction handling
-    - Set up audio buffer management and playback system
+- [x] 6. Implement audio system
+  - [x] 6.1 Set up Web Audio API integration
+    - ✅ Create AudioManager class with sound loading capabilities
+    - ✅ Implement audio context management and user interaction handling
+    - ✅ Set up audio buffer management and playback system
+    - ✅ Add procedural sound generation with MusicGenerator and SoundGenerator
+    - ✅ Implement volume controls (master, SFX, music) with real-time adjustment
+    - ✅ Create graceful fallback system with silent buffers for failed loads
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 6.2 Add game sound effects
-    - Implement "plop" sound for successful catches
-    - Add "splat" sound for missed poop
-    - Create "sploot" sound for baby shooting
-    - Add "fail" tone for game over
+  - [x] 6.2 Add game sound effects
+    - ✅ Implement "plop" sound for successful catches
+    - ✅ Add "splat" sound for missed poop
+    - ✅ Create "sploot" sound for baby shooting
+    - ✅ Add "fail" tone for game over
+    - ✅ Add fancy catch sound for golden poop
+    - ✅ Add warning sound for boob poop catches
+    - ✅ Integrate all sound effects with game events and particle systems
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 6.3 Implement background music system
-    - Add continuous background music loop
-    - Implement volume controls and audio settings
-    - Handle audio context suspension and resumption
+  - [x] 6.3 Implement background music system
+    - ✅ Add continuous background music loop with procedural generation
+    - ✅ Implement volume controls and audio settings
+    - ✅ Handle audio context suspension and resumption
+    - ✅ Add ambient music for splash screen
+    - ✅ Integrate music state management with game state transitions
     - _Requirements: 6.5_
 
-- [ ] 7. Create asset management and loading system
-  - [ ] 7.1 Implement texture loading system
+- [x] 7. Create asset management and loading system
+  - [x] 7.1 Implement texture loading system
     - Create AssetManager class for texture management
     - Set up texture loading with fallback to colored geometry
     - Implement progressive loading for better user experience
     - _Requirements: 2.2, 2.3, 2.4_
 
-  - [ ] 7.2 Add placeholder assets and textures
+  - [x] 7.2 Add placeholder assets and textures
     - Create placeholder textures for baby, diaper, and poop sprites
     - Set up asset directory structure and loading paths
     - Implement asset preloading before game start

@@ -3,6 +3,8 @@ import { InputManager } from './input';
 import { Diaper, Baby, Poop } from './entities';
 import { CollisionSystem, ScoreSystem, GameStateManager, GameState } from './systems';
 import { ParticleSystem, ParticleType } from './effects';
+import { GameAudio } from './audio';
+import { AssetManager } from './assets';
 
 // Core Game Engine Interface
 interface GameEngine {
@@ -48,6 +50,8 @@ class DiaperDefenseEngine implements GameEngine {
   private scoreSystem: ScoreSystem;
   private inputManager: InputManager;
   private particleSystem: ParticleSystem;
+  public gameAudio: GameAudio;
+  private assetManager: AssetManager;
   
   // Game entities
   private diaper: Diaper | null = null;
@@ -102,6 +106,8 @@ class DiaperDefenseEngine implements GameEngine {
     this.scoreSystem = ScoreSystem.getInstance();
     this.inputManager = new InputManager(canvas);
     this.particleSystem = new ParticleSystem(this.scene);
+    this.gameAudio = GameAudio.getInstance();
+    this.assetManager = AssetManager.getInstance();
     
     // Initialize game state
     this.gameState = this.gameStateManager.getCurrentState();
@@ -121,10 +127,53 @@ class DiaperDefenseEngine implements GameEngine {
     directionalLight.position.set(0, 0, 1);
     this.scene.add(directionalLight);
 
+    // Initialize asset management system
+    this.initializeAssets();
+
     // Initialize game entities
     this.initializeEntities();
 
+    // Initialize audio system (will be activated on user interaction)
+    this.initializeAudio();
+
     console.log('Diaper Defense game engine initialized');
+  }
+
+  /**
+   * Initialize asset management system
+   */
+  private initializeAssets(): void {
+    // Set up asset loading callbacks
+    this.assetManager.setProgressCallback((progress) => {
+      console.log(`Asset loading progress: ${progress.percentage.toFixed(1)}% (${progress.loaded}/${progress.total})`);
+      if (progress.currentAsset) {
+        console.log(`Loading: ${progress.currentAsset}`);
+      }
+    });
+
+    this.assetManager.setCompleteCallback(() => {
+      console.log('All assets loaded successfully');
+    });
+
+    this.assetManager.setErrorCallback((error, assetName) => {
+      console.warn(`Asset loading error for ${assetName}:`, error);
+    });
+
+    // Load placeholder textures immediately for development
+    // In production, this could be replaced with actual asset loading
+    this.assetManager.loadPlaceholderTextures();
+  }
+
+  /**
+   * Initialize audio system
+   */
+  private async initializeAudio(): Promise<void> {
+    try {
+      await this.gameAudio.init();
+      console.log('Audio system initialized');
+    } catch (error) {
+      console.error('Failed to initialize audio system:', error);
+    }
   }
 
   /**
@@ -255,6 +304,15 @@ class DiaperDefenseEngine implements GameEngine {
     this.diaper?.triggerCatchAnimation();
     poop.triggerCatchAnimation();
     
+    // Play appropriate sound effects
+    if (poop.type === 'fancy') {
+      this.gameAudio.playFancyCatchSound();
+    } else if (poop.type === 'regular') {
+      this.gameAudio.playPlopSound();
+    } else if (poop.type === 'boob') {
+      this.gameAudio.playWarningSound();
+    }
+    
     // Create enhanced particle effects based on poop type
     if (poop.type === 'fancy') {
       // Fancy poop gets spectacular effects
@@ -321,6 +379,9 @@ class DiaperDefenseEngine implements GameEngine {
       if (poop.isActive && poop.isOffScreen()) {
         console.log(`Missed ${poop.type} poop!`);
         
+        // Play splat sound for missed poop
+        this.gameAudio.playSplatSound();
+        
         // Trigger visual effects for miss
         this.diaper?.triggerMissAnimation();
         
@@ -382,6 +443,9 @@ class DiaperDefenseEngine implements GameEngine {
   private onBabyShoot(baby: Baby): void {
     if (this.gameState !== GameState.PLAY) return;
 
+    // Play shooting sound effect
+    this.gameAudio.playSplootSound();
+
     // Create enhanced shooting particle effect
     this.particleSystem.createEffect(ParticleType.SHOOT_PUFF, baby.position, 6, 40);
     
@@ -430,6 +494,9 @@ class DiaperDefenseEngine implements GameEngine {
     console.log('Game started!');
     this.scoreSystem.reset();
     this.resetGameEntities();
+    
+    // Start background music
+    this.gameAudio.startBackgroundMusic().catch(console.error);
   }
 
   /**
@@ -439,6 +506,10 @@ class DiaperDefenseEngine implements GameEngine {
     console.log('Game over!');
     const stats = this.scoreSystem.getStats();
     console.log('Final stats:', stats);
+    
+    // Play game over sound and stop background music
+    this.gameAudio.playFailSound();
+    this.gameAudio.stopBackgroundMusic();
     
     // Update final score display
     const finalScoreElement = document.getElementById('final-score-value');
@@ -690,6 +761,11 @@ function showSplashScreen(): void {
     splashScreen.classList.remove('fade-out', 'slide-out-right');
     splashScreen.classList.add('fade-in', 'scale-in');
     
+    // Start ambient music for splash screen (if audio is ready)
+    if (gameEngine.gameAudio.isReady()) {
+      gameEngine.gameAudio.startAmbientMusic().catch(console.error);
+    }
+    
     // Add pulse animation to play button after entrance
     setTimeout(() => {
       playButton.classList.add('pulse');
@@ -757,12 +833,15 @@ function showGameOver(): void {
 (window as any).showGameOver = showGameOver;
 
 // Enhanced Event Listeners with animation management
-playButton.addEventListener('click', () => {
+playButton.addEventListener('click', async () => {
   // Remove pulse animation when clicked
   playButton.classList.remove('pulse');
   
   // Add click feedback animation
   playButton.classList.add('scale-in');
+  
+  // Activate audio on user interaction
+  await gameEngine.gameAudio.resumeAudio();
   
   setTimeout(() => {
     showGameHud();
@@ -774,12 +853,15 @@ playButton.addEventListener('click', () => {
   }, 100);
 });
 
-restartButton.addEventListener('click', () => {
+restartButton.addEventListener('click', async () => {
   // Remove pulse animation when clicked
   restartButton.classList.remove('pulse');
   
   // Add click feedback animation
   restartButton.classList.add('bounce-in');
+  
+  // Ensure audio is active
+  await gameEngine.gameAudio.resumeAudio();
   
   setTimeout(() => {
     showGameHud();

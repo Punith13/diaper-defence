@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
+import { AssetManager } from '../assets';
 
 /**
  * Poop types with different behaviors and point values
@@ -58,10 +59,17 @@ export class Poop extends Entity {
   ) {
     const config = Poop.typeConfigs[type];
     
-    // Create poop sprite using PlaneGeometry
+    // Create poop sprite using PlaneGeometry with texture
     const geometry = new THREE.PlaneGeometry(30, 30);
+    
+    // Try to get texture from AssetManager, fallback to solid color
+    const assetManager = AssetManager.getInstance();
+    const textureKey = `poop-${type}`;
+    const poopTexture = assetManager.getTexture(textureKey);
+    
     const material = new THREE.MeshBasicMaterial({ 
-      color: config.color,
+      map: poopTexture || null,
+      color: poopTexture ? 0xffffff : config.color, // White if texture, type color if no texture
       transparent: true,
       opacity: 1.0
     });

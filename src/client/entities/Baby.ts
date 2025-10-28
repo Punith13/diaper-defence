@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
+import { AssetManager } from '../assets';
 
 /**
  * Baby entity that oscillates horizontally and shoots poop projectiles
@@ -24,10 +25,16 @@ export class Baby extends Entity {
     y: number = 250,
     onShoot?: (baby: Baby) => void
   ) {
-    // Create baby sprite using PlaneGeometry
+    // Create baby sprite using PlaneGeometry with texture
     const geometry = new THREE.PlaneGeometry(60, 60);
+    
+    // Try to get texture from AssetManager, fallback to solid color
+    const assetManager = AssetManager.getInstance();
+    const babyTexture = assetManager.getTexture('baby');
+    
     const material = new THREE.MeshBasicMaterial({ 
-      color: 0xFFB6C1, // Light pink color for baby
+      map: babyTexture || null,
+      color: babyTexture ? 0xffffff : 0xFFB6C1, // White if texture, pink if no texture
       transparent: true,
       opacity: 1.0
     });
