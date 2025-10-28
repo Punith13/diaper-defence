@@ -1,0 +1,478 @@
+/* Global resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #87CEEB; /* Sky blue to match game background */
+  touch-action: none; /* Prevent scrolling on mobile */
+}
+
+/* Three.js canvas fills the screen */
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Game UI container sitting above the canvas */
+.game-ui {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none; /* Allow clicks to pass through except on interactive elements */
+}
+
+/* Enhanced smooth transitions for all UI elements */
+.splash-screen,
+.game-hud,
+.game-over-screen {
+  transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+/* Enhanced fade in/out animations with multiple transform effects */
+.fade-in {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotate(0deg);
+  filter: blur(0px);
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.95) rotate(-1deg);
+  filter: blur(2px);
+}
+
+/* Enhanced scale animations for buttons and UI elements */
+.scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.6) rotate(-5deg);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  50% {
+    transform: scale(1.05) rotate(1deg);
+    opacity: 0.8;
+    filter: blur(1px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Slide animations for game state transitions */
+.slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.slide-out-left {
+  animation: slideOutLeft 0.5s ease-in;
+}
+
+.slide-out-right {
+  animation: slideOutRight 0.5s ease-in;
+}
+
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Bounce animation for successful actions */
+.bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(0.9) rotate(-2deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Shake animation for errors or misses */
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-1deg); }
+  20%, 40%, 60%, 80% { transform: translateX(5px) rotate(1deg); }
+}
+
+/* Pulse animation for attention-grabbing elements */
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Splash Screen */
+.splash-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  text-align: center;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+/* Animated background elements */
+.splash-screen::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: float 20s infinite linear;
+  z-index: 1;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-50px, -50px) rotate(360deg); }
+}
+
+.game-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #8B4513;
+  text-shadow: 3px 3px 0px #654321, 6px 6px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+  animation: titleBounce 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleBounce {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-5px); }
+}
+
+.game-subtitle {
+  font-size: 1.1rem;
+  color: #8B4513;
+  font-weight: 600;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 2;
+}
+
+.game-description {
+  font-size: 1.2rem;
+  color: #654321;
+  margin-bottom: 20px;
+  max-width: 400px;
+  position: relative;
+  z-index: 2;
+  line-height: 1.4;
+}
+
+.game-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.feature-badge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #8B4513;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.play-button {
+  background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+  color: white;
+  border: none;
+  padding: 18px 45px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.play-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+}
+
+.play-button:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.play-button::before {
+  content: '🎮';
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+/* Game HUD */
+.game-hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.score-display,
+.miss-display {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 20px;
+  border-radius: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.score-label,
+.miss-label {
+  font-weight: 600;
+  color: #333;
+  margin-right: 8px;
+}
+
+.score-value,
+.miss-value {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #8B4513; /* Brown */
+}
+
+/* Game Over Screen */
+.game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  text-align: center;
+  padding: 0 20px;
+  background: rgba(139, 69, 19, 0.95); /* Semi-transparent brown */
+  pointer-events: auto;
+}
+
+.game-over-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #FFB6C1; /* Light pink */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 10px;
+}
+
+.final-score {
+  font-size: 1.3rem;
+  color: #FFFFFF;
+  margin-bottom: 20px;
+}
+
+.restart-button {
+  background: linear-gradient(45deg, #4ECDC4, #44A08D);
+  color: white;
+  border: none;
+  padding: 12px 35px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+.restart-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.6);
+}
+
+.restart-button:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 2.8rem;
+  }
+  
+  .game-subtitle {
+    font-size: 1rem;
+  }
+  
+  .game-description {
+    font-size: 1rem;
+  }
+  
+  .game-features {
+    gap: 10px;
+  }
+  
+  .feature-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .play-button {
+    padding: 15px 35px;
+    font-size: 1.4rem;
+  }
+  
+  .game-hud {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+  
+  .score-display,
+  .miss-display {
+    padding: 8px 15px;
+  }
+  
+  .game-over-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 2.2rem;
+  }
+  
+  .game-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .game-description {
+    font-size: 0.9rem;
+    max-width: 300px;
+  }
+  
+  .feature-badge {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+  
+  .play-button {
+    padding: 12px 30px;
+    font-size: 1.2rem;
+  }
+}

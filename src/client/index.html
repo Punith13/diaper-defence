@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="yes" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  </head>
+  <body>
+    <canvas id="bg"></canvas>
+    <div class="game-ui">
+      <!-- Game UI will be implemented in future tasks -->
+      <div class="splash-screen" id="splash-screen">
+        <h1 class="game-title">Diaper Defense</h1>
+        <p class="game-subtitle">The Ultimate Baby Poop Catching Game!</p>
+        <p class="game-description">Help the diaper catch falling poop while avoiding the dreaded boob poop. How high can you score?</p>
+        <div class="game-features">
+          <span class="feature-badge">🍼 Arcade Action</span>
+          <span class="feature-badge">📱 Mobile Friendly</span>
+          <span class="feature-badge">🏆 High Scores</span>
+        </div>
+        <button class="play-button" id="play-button">Play Now</button>
+      </div>
+      
+      <div class="game-hud" id="game-hud" style="display: none;">
+        <div class="score-display">
+          <span class="score-label">Score:</span>
+          <span class="score-value" id="score-value">0</span>
+        </div>
+        <div class="miss-display">
+          <span class="miss-label">Misses:</span>
+          <span class="miss-value" id="miss-value">0</span>
+        </div>
+      </div>
+      
+      <div class="game-over-screen" id="game-over-screen" style="display: none;">
+        <h2 class="game-over-title">Game Over!</h2>
+        <p class="final-score">Final Score: <span id="final-score-value">0</span></p>
+        <button class="restart-button" id="restart-button">Play Again</button>
+      </div>
+    </div>
+    <script type="module" src="main.ts" defer></script>
+  </body>
+</html>
