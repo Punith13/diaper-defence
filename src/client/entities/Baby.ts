@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { AssetManager } from '../assets';
+import { PoopType } from './Poop';
 
 /**
  * Baby entity that oscillates horizontally and shoots poop projectiles
@@ -28,9 +29,9 @@ export class Baby extends Entity {
     // Create baby sprite using PlaneGeometry with texture
     const geometry = new THREE.PlaneGeometry(60, 60);
     
-    // Try to get texture from AssetManager, fallback to solid color
+    // Try to get crying texture from AssetManager (default state)
     const assetManager = AssetManager.getInstance();
-    const babyTexture = assetManager.getTexture('baby');
+    const babyTexture = assetManager.getTexture('baby-crying');
     
     const material = new THREE.MeshBasicMaterial({ 
       map: babyTexture || null,
@@ -121,7 +122,7 @@ export class Baby extends Entity {
       // Decrease shooting interval by 10% each time, minimum 500ms
       this.shootInterval = Math.max(500, this.shootInterval * 0.9);
       
-      console.log(`Baby shooting rate increased! New interval: ${this.shootInterval}ms`);
+      // console.log(`Baby shooting rate increased! New interval: ${this.shootInterval}ms`);
     }
   }
 
@@ -207,6 +208,41 @@ export class Baby extends Entity {
   }
 
   /**
+   * Change baby expression based on poop type about to be shot
+   * @param poopType Type of poop that will be shot
+   */
+  public setExpressionForPoopType(poopType: PoopType): void {
+    const assetManager = AssetManager.getInstance();
+    let texture: THREE.Texture | undefined;
+    
+    if (poopType === PoopType.FANCY) {
+      // Happy expression for golden poop
+      texture = assetManager.getTexture('baby-happy');
+    } else {
+      // Crying expression for regular and boob poop
+      texture = assetManager.getTexture('baby-crying');
+    }
+    
+    if (texture && this.mesh.material instanceof THREE.MeshBasicMaterial) {
+      this.mesh.material.map = texture;
+      this.mesh.material.needsUpdate = true;
+    }
+  }
+
+  /**
+   * Reset baby expression to default (crying)
+   */
+  public resetExpression(): void {
+    const assetManager = AssetManager.getInstance();
+    const cryingTexture = assetManager.getTexture('baby-crying');
+    
+    if (cryingTexture && this.mesh.material instanceof THREE.MeshBasicMaterial) {
+      this.mesh.material.map = cryingTexture;
+      this.mesh.material.needsUpdate = true;
+    }
+  }
+
+  /**
    * Reset baby state for new game
    */
   public reset(): void {
@@ -216,5 +252,6 @@ export class Baby extends Entity {
     this.oscillationPhase = 0;
     this.resetShootTimer();
     this.setPosition(this.centerX, this.position.y, this.position.z);
+    this.resetExpression(); // Reset to crying expression
   }
 }

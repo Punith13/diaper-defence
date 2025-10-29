@@ -99,6 +99,7 @@ export class ParticleSystem {
   private particles: Particle[] = [];
   private geometries: Map<ParticleType, THREE.BufferGeometry> = new Map();
   private materials: Map<ParticleType, THREE.Material> = new Map();
+  private maxParticles: number = 30; // Default max particles
   
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -166,23 +167,30 @@ export class ParticleSystem {
       console.warn(`Particle type ${type} not found`);
       return;
     }
+
+    // Limit particle count based on performance settings
+    const actualCount = Math.min(count, this.maxParticles - this.particles.length);
+    if (actualCount <= 0) return;
+    
+    // Make room for new particles if needed
+    this.makeRoomForParticles(actualCount);
     
     // Create particles with different patterns based on type
     switch (type) {
       case ParticleType.CATCH_SPARKLE:
-        this.createSparklePattern(geometry, material, position, count, spread);
+        this.createSparklePattern(geometry, material, position, actualCount, spread);
         break;
       case ParticleType.MISS_SPLASH:
-        this.createSplashPattern(geometry, material, position, count, spread);
+        this.createSplashPattern(geometry, material, position, actualCount, spread);
         break;
       case ParticleType.SHOOT_PUFF:
-        this.createPuffPattern(geometry, material, position, count, spread);
+        this.createPuffPattern(geometry, material, position, actualCount, spread);
         break;
       case ParticleType.SCORE_POP:
-        this.createScorePattern(geometry, material, position, count, spread);
+        this.createScorePattern(geometry, material, position, actualCount, spread);
         break;
       default:
-        this.createDefaultPattern(geometry, material, position, count, spread);
+        this.createDefaultPattern(geometry, material, position, actualCount, spread);
     }
   }
   
@@ -438,5 +446,50 @@ export class ParticleSystem {
    */
   public getActiveParticleCount(): number {
     return this.particles.length;
+  }
+
+  /**
+   * Set maximum number of particles for performance optimization
+   */
+  public setMaxParticles(max: number): void {
+    this.maxParticles = Math.max(5, max); // Minimum of 5 particles
+    
+    // Remove excess particles if current count exceeds new limit
+    while (this.particles.length > this.maxParticles) {
+      const particle = this.particles.pop();
+      if (particle) {
+        particle.destroy(this.scene);
+      }
+    }
+  }
+
+  /**
+   * Get maximum particle count
+   */
+  public getMaxParticles(): number {
+    return this.maxParticles;
+  }
+
+  /**
+   * Check if we can add more particles
+   */
+  private canAddParticles(count: number): boolean {
+    return this.particles.length + count <= this.maxParticles;
+  }
+
+  /**
+   * Remove oldest particles to make room for new ones
+   */
+  private makeRoomForParticles(count: number): void {
+    const excessCount = (this.particles.length + count) - this.maxParticles;
+    if (excessCount > 0) {
+      // Remove oldest particles (from the beginning of the array)
+      for (let i = 0; i < excessCount; i++) {
+        const particle = this.particles.shift();
+        if (particle) {
+          particle.destroy(this.scene);
+        }
+      }
+    }
   }
 }

@@ -60,7 +60,7 @@ export class GameAudio {
       }
       
       this.isInitialized = true;
-      console.log('GameAudio initialized successfully');
+      // console.log('GameAudio initialized successfully');
       
     } catch (error) {
       console.error('Failed to initialize GameAudio:', error);
@@ -103,7 +103,7 @@ export class GameAudio {
         await this.generateMusicOnDemand(musicName);
       }
       
-      console.log('All game sounds and music generated successfully');
+      // console.log('All game sounds and music generated successfully');
       
     } catch (error) {
       console.error('Failed to generate game sounds and music:', error);
@@ -156,7 +156,7 @@ export class GameAudio {
       
       // Store the generated buffer in the audio manager
       this.audioManager.addSoundBuffer(soundName, buffer);
-      console.log(`Generated and stored sound: ${soundName}`);
+      // console.log(`Generated and stored sound: ${soundName}`);
       
       // Clean up temporary context
       await tempContext.close();
@@ -201,7 +201,7 @@ export class GameAudio {
       
       // Store the generated buffer in the audio manager
       this.audioManager.addSoundBuffer(musicName, buffer);
-      console.log(`Generated and stored music: ${musicName}`);
+      // console.log(`Generated and stored music: ${musicName}`);
       
       // Clean up temporary context
       await tempContext.close();
@@ -287,7 +287,7 @@ export class GameAudio {
    */
   private async playMusic(musicName: string, loop: boolean = true): Promise<void> {
     if (!this.isInitialized || !this.audioManager.isReady()) {
-      console.log(`Cannot play music ${musicName}: audio not ready`);
+      // console.log(`Cannot play music ${musicName}: audio not ready`);
       return;
     }
 
@@ -303,7 +303,7 @@ export class GameAudio {
 
     this.audioManager.playBackgroundMusic(musicName, loop);
     this.currentMusic = musicName;
-    console.log(`Started playing music: ${musicName}`);
+    // console.log(`Started playing music: ${musicName}`);
   }
 
   /**
@@ -325,7 +325,7 @@ export class GameAudio {
    */
   private async playGameSound(soundName: string, volume: number = 1.0): Promise<void> {
     if (!this.isInitialized || !this.audioManager.isReady()) {
-      console.log(`Cannot play ${soundName}: audio not ready`);
+      // console.log(`Cannot play ${soundName}: audio not ready`);
       return;
     }
 

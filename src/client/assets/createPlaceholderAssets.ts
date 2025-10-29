@@ -35,7 +35,7 @@ export function createPlaceholderAssets(): void {
     }, 'image/png');
   });
   
-  console.log('Placeholder assets created and downloaded');
+  // console.log('Placeholder assets created and downloaded');
 }
 
 // Export for potential use in development tools

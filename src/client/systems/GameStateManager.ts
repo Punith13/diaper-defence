@@ -70,7 +70,7 @@ export class GameStateManager {
    */
   public transitionTo(newState: GameState, force: boolean = false): void {
     if (this.currentState === newState && !force) {
-      console.log(`Already in state ${newState}, skipping transition`);
+      // console.log(`Already in state ${newState}, skipping transition`);
       return;
     }
 
@@ -79,7 +79,7 @@ export class GameStateManager {
       return;
     }
 
-    console.log(`Transitioning from ${this.currentState} to ${newState}`);
+    // console.log(`Transitioning from ${this.currentState} to ${newState}`);
     
     this.isTransitioning = true;
     this.previousState = this.currentState;
@@ -126,7 +126,7 @@ export class GameStateManager {
   private handleStartState(): void {
     this.gameTime = 0;
     this.startTime = 0;
-    console.log('Game state: START - Ready to begin');
+    // console.log('Game state: START - Ready to begin');
   }
 
   /**
@@ -135,7 +135,7 @@ export class GameStateManager {
   private handlePlayState(): void {
     this.startTime = Date.now();
     this.gameTime = 0;
-    console.log('Game state: PLAY - Game started');
+    // console.log('Game state: PLAY - Game started');
   }
 
   /**
@@ -146,7 +146,7 @@ export class GameStateManager {
     if (this.startTime > 0) {
       this.gameTime = endTime - this.startTime;
     }
-    console.log(`Game state: GAME_OVER - Game ended after ${this.gameTime}ms`);
+    // console.log(`Game state: GAME_OVER - Game ended after ${this.gameTime}ms`);
   }
 
   /**
@@ -227,7 +227,7 @@ export class GameStateManager {
    * Implements requirement 4.5 for game reset functionality
    */
   public resetGame(): void {
-    console.log('Resetting game state');
+    // console.log('Resetting game state');
     
     // Call all reset callbacks
     this.resetCallbacks.forEach(callback => {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { InputManager } from './input';
-import { Diaper, Baby, Poop } from './entities';
-import { CollisionSystem, ScoreSystem, GameStateManager, GameState } from './systems';
+import { Diaper, Baby, Poop, PoopType } from './entities';
+import { CollisionSystem, ScoreSystem, GameStateManager, GameState, PoopPool, ErrorHandler, ErrorType, ErrorSeverity, PerformanceManager, QualitySettings } from './systems';
 import { ParticleSystem, ParticleType } from './effects';
 import { GameAudio } from './audio';
 import { AssetManager } from './assets';
@@ -52,6 +52,9 @@ class DiaperDefenseEngine implements GameEngine {
   private particleSystem: ParticleSystem;
   public gameAudio: GameAudio;
   private assetManager: AssetManager;
+  private poopPool: PoopPool;
+  private errorHandler: ErrorHandler;
+  private performanceManager: PerformanceManager;
   
   // Game entities
   private diaper: Diaper | null = null;
@@ -90,24 +93,54 @@ class DiaperDefenseEngine implements GameEngine {
     );
     this.camera.position.z = 10;
 
-    // Setup renderer
+    // Initialize performance manager first to get quality settings
+    this.errorHandler = ErrorHandler.getInstance();
+    this.performanceManager = PerformanceManager.getInstance();
+    const qualitySettings = this.performanceManager.getQualitySettings();
+    
+    // Setup renderer with performance-optimized settings
     this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
+      antialias: qualitySettings.antialiasing, 
       canvas,
-      alpha: false 
+      alpha: false,
+      powerPreference: 'high-performance'
     });
-    this.renderer.setPixelRatio(window.devicePixelRatio ?? 1);
+    this.renderer.setPixelRatio(qualitySettings.pixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x87CEEB, 1);
 
-    // Initialize game systems
+    // Initialize remaining game systems
     this.gameStateManager = GameStateManager.getInstance();
     this.collisionSystem = CollisionSystem.getInstance();
     this.scoreSystem = ScoreSystem.getInstance();
-    this.inputManager = new InputManager(canvas);
+    try {
+      this.inputManager = new InputManager(canvas);
+    } catch (error) {
+      this.errorHandler.handleError(
+        ErrorType.INPUT,
+        ErrorSeverity.HIGH,
+        'Failed to initialize input system',
+        error instanceof Error ? error : new Error(String(error)),
+        { canvas }
+      );
+      throw error; // Input is critical, so we need to throw
+    }
     this.particleSystem = new ParticleSystem(this.scene);
-    this.gameAudio = GameAudio.getInstance();
+    try {
+      this.gameAudio = GameAudio.getInstance();
+    } catch (error) {
+      this.errorHandler.handleError(
+        ErrorType.AUDIO_CONTEXT,
+        ErrorSeverity.MEDIUM,
+        'Failed to initialize audio system',
+        error instanceof Error ? error : new Error(String(error)),
+        { audioContext: (window as any).AudioContext || (window as any).webkitAudioContext }
+      );
+      // Create a fallback audio instance that does nothing
+      this.gameAudio = GameAudio.getInstance(); // This should still work as it has fallbacks
+    }
     this.assetManager = AssetManager.getInstance();
+    this.poopPool = new PoopPool(this.scene, this.config.scene.bounds.bottom);
     
     // Initialize game state
     this.gameState = this.gameStateManager.getCurrentState();
@@ -136,7 +169,7 @@ class DiaperDefenseEngine implements GameEngine {
     // Initialize audio system (will be activated on user interaction)
     this.initializeAudio();
 
-    console.log('Diaper Defense game engine initialized');
+    // console.log('Diaper Defense game engine initialized');
   }
 
   /**
@@ -145,18 +178,24 @@ class DiaperDefenseEngine implements GameEngine {
   private initializeAssets(): void {
     // Set up asset loading callbacks
     this.assetManager.setProgressCallback((progress) => {
-      console.log(`Asset loading progress: ${progress.percentage.toFixed(1)}% (${progress.loaded}/${progress.total})`);
+      // console.log(`Asset loading progress: ${progress.percentage.toFixed(1)}% (${progress.loaded}/${progress.total})`);
       if (progress.currentAsset) {
-        console.log(`Loading: ${progress.currentAsset}`);
+        // console.log(`Loading: ${progress.currentAsset}`);
       }
     });
 
     this.assetManager.setCompleteCallback(() => {
-      console.log('All assets loaded successfully');
+      // console.log('All assets loaded successfully');
     });
 
     this.assetManager.setErrorCallback((error, assetName) => {
-      console.warn(`Asset loading error for ${assetName}:`, error);
+      this.errorHandler.handleError(
+        ErrorType.ASSET_LOADING,
+        ErrorSeverity.MEDIUM,
+        `Failed to load asset: ${assetName}`,
+        error,
+        { assetName, assetManager: this.assetManager }
+      );
     });
 
     // Load placeholder textures immediately for development
@@ -170,7 +209,7 @@ class DiaperDefenseEngine implements GameEngine {
   private async initializeAudio(): Promise<void> {
     try {
       await this.gameAudio.init();
-      console.log('Audio system initialized');
+      // console.log('Audio system initialized');
     } catch (error) {
       console.error('Failed to initialize audio system:', error);
     }
@@ -205,6 +244,11 @@ class DiaperDefenseEngine implements GameEngine {
     this.gameStateManager.onReset(() => {
       this.resetGameEntities();
     });
+
+    // Performance manager callbacks
+    this.performanceManager.setQualityChangeCallback((settings) => {
+      this.applyQualitySettings(settings);
+    });
   }
 
   private initializeEntities(): void {
@@ -236,18 +280,31 @@ class DiaperDefenseEngine implements GameEngine {
   }
 
   update(deltaTime: number): void {
-    // Update game state from manager
-    this.gameState = this.gameStateManager.getCurrentState();
-    
-    // Update input system and validate state
-    this.inputManager.update();
-    this.inputManager.validateInputState();
-    
-    // Only update game entities during PLAY state
-    if (this.gameState === GameState.PLAY) {
-      this.updateGameEntities(deltaTime);
-      this.checkCollisions();
-      this.cleanupEntities();
+    try {
+      // Update game state from manager
+      this.gameState = this.gameStateManager.getCurrentState();
+      
+      // Clear error display when game is running normally
+      this.errorHandler.clearErrorDisplay();
+      
+      // Update input system and validate state
+      this.inputManager.update();
+      this.inputManager.validateInputState();
+      
+      // Only update game entities during PLAY state
+      if (this.gameState === GameState.PLAY) {
+        this.updateGameEntities(deltaTime);
+        this.checkCollisions();
+        this.cleanupEntities();
+      }
+    } catch (error) {
+      this.errorHandler.handleError(
+        ErrorType.GAME_STATE,
+        ErrorSeverity.HIGH,
+        'Game update error occurred',
+        error instanceof Error ? error : new Error(String(error)),
+        { gameState: this.gameState, deltaTime }
+      );
     }
   }
 
@@ -298,23 +355,23 @@ class DiaperDefenseEngine implements GameEngine {
    * Handle when a poop is caught by the diaper with enhanced visual effects
    */
   private handlePoopCatch(poop: Poop): void {
-    console.log(`Caught ${poop.type} poop!`);
+    // console.log(`Caught ${poop.type} poop!`);
     
     // Trigger visual effects
     this.diaper?.triggerCatchAnimation();
     poop.triggerCatchAnimation();
     
     // Play appropriate sound effects
-    if (poop.type === 'fancy') {
+    if (poop.type === PoopType.FANCY) {
       this.gameAudio.playFancyCatchSound();
-    } else if (poop.type === 'regular') {
+    } else if (poop.type === PoopType.REGULAR) {
       this.gameAudio.playPlopSound();
-    } else if (poop.type === 'boob') {
+    } else if (poop.type === PoopType.BOOB) {
       this.gameAudio.playWarningSound();
     }
     
     // Create enhanced particle effects based on poop type
-    if (poop.type === 'fancy') {
+    if (poop.type === PoopType.FANCY) {
       // Fancy poop gets spectacular effects
       this.particleSystem.createEffect(ParticleType.CATCH_SPARKLE, poop.position, 12, 80);
       this.particleSystem.createEffect(ParticleType.SCORE_POP, poop.position, 6, 50);
@@ -324,12 +381,12 @@ class DiaperDefenseEngine implements GameEngine {
         this.particleSystem.createEffect(ParticleType.CATCH_SPARKLE, poop.position, 8, 60);
       }, 200);
       
-    } else if (poop.type === 'regular') {
+    } else if (poop.type === PoopType.REGULAR) {
       // Regular poop gets standard effects
       this.particleSystem.createEffect(ParticleType.CATCH_SPARKLE, poop.position, 6, 50);
       this.particleSystem.createEffect(ParticleType.SCORE_POP, poop.position, 4, 35);
       
-    } else if (poop.type === 'boob') {
+    } else if (poop.type === PoopType.BOOB) {
       // Boob poop gets ominous effects before game over
       this.particleSystem.createEffect(ParticleType.MISS_SPLASH, poop.position, 10, 70);
       
@@ -354,7 +411,7 @@ class DiaperDefenseEngine implements GameEngine {
     
     // Check if catching this poop causes game over (boob poop)
     if (this.scoreSystem.shouldGameOverOnCatch(poop.type)) {
-      console.log('Game over: Caught boob poop!');
+      // console.log('Game over: Caught boob poop!');
       
       // Create dramatic game over particle effect
       setTimeout(() => {
@@ -366,7 +423,7 @@ class DiaperDefenseEngine implements GameEngine {
       return; // Don't destroy poop here, let the animation handle it
     }
     
-    console.log(`Earned ${points} points! Total score: ${this.scoreSystem.getScore()}`);
+    // console.log(`Earned ${points} points! Total score: ${this.scoreSystem.getScore()}`);
     
     // Note: poop.destroy() is now called by the catch animation
   }
@@ -377,7 +434,7 @@ class DiaperDefenseEngine implements GameEngine {
   private checkMissedPoops(): void {
     this.poops.forEach(poop => {
       if (poop.isActive && poop.isOffScreen()) {
-        console.log(`Missed ${poop.type} poop!`);
+        // console.log(`POOP MISSED! Type: ${poop.type}, Position Y: ${poop.position.y}, Screen Bottom: ${this.config.scene.bounds.bottom}`);
         
         // Play splat sound for missed poop
         this.gameAudio.playSplatSound();
@@ -388,7 +445,7 @@ class DiaperDefenseEngine implements GameEngine {
         // Create enhanced miss effects based on poop type
         const splashPosition = new THREE.Vector3(poop.position.x, this.config.scene.bounds.bottom + 20, 0);
         
-        if (poop.type === 'fancy') {
+        if (poop.type === PoopType.FANCY) {
           // Missing fancy poop is more dramatic
           this.particleSystem.createEffect(ParticleType.MISS_SPLASH, splashPosition, 10, 70);
           
@@ -397,24 +454,35 @@ class DiaperDefenseEngine implements GameEngine {
             this.particleSystem.createEffect(ParticleType.MISS_SPLASH, splashPosition, 6, 50);
           }, 150);
           
-        } else if (poop.type === 'regular') {
+        } else if (poop.type === PoopType.REGULAR) {
           // Standard miss effect
           this.particleSystem.createEffect(ParticleType.MISS_SPLASH, splashPosition, 7, 55);
           
-        } else if (poop.type === 'boob') {
+        } else if (poop.type === PoopType.BOOB) {
           // Missing boob poop creates a different effect (relief?)
           this.particleSystem.createEffect(ParticleType.SHOOT_PUFF, splashPosition, 8, 60);
         }
         
-        // Add miss to score system
-        const gameOver = this.scoreSystem.addMiss();
+        // Only count misses for regular and fancy poop (missing boob poop is actually good!)
+        let gameOver = false;
+        if (poop.type === PoopType.REGULAR || poop.type === PoopType.FANCY) {
+          // console.log(`BEFORE MISS: Total misses: ${this.scoreSystem.getMisses()}, Consecutive: ${this.scoreSystem.getConsecutiveMisses()}`);
+          gameOver = this.scoreSystem.addMiss();
+          // console.log(`AFTER MISS: Type: ${poop.type}, Total misses: ${this.scoreSystem.getMisses()}, Consecutive: ${this.scoreSystem.getConsecutiveMisses()}, Game Over: ${gameOver}`);
+        } else if (poop.type === PoopType.BOOB) {
+          // Missing boob poop is good - reset consecutive misses
+          // console.log('Boob poop missed - that\'s good! Resetting consecutive misses.');
+          // console.log(`BEFORE RESET: Consecutive misses: ${this.scoreSystem.getConsecutiveMisses()}`);
+          this.scoreSystem.resetConsecutiveMisses();
+          // console.log(`AFTER RESET: Consecutive misses: ${this.scoreSystem.getConsecutiveMisses()}`);
+        }
         
         // Remove the missed poop
         poop.destroy();
         
         // Check if this miss causes game over
         if (gameOver) {
-          console.log('Game over: Too many consecutive misses!');
+          // console.log('Game over: Too many consecutive misses!');
           
           // Create dramatic game over effect
           setTimeout(() => {
@@ -443,6 +511,12 @@ class DiaperDefenseEngine implements GameEngine {
   private onBabyShoot(baby: Baby): void {
     if (this.gameState !== GameState.PLAY) return;
 
+    // Determine poop type first to set baby expression
+    const poopType = Poop.createRandomType(this.scoreSystem.getScore());
+    
+    // Set baby expression based on poop type
+    baby.setExpressionForPoopType(poopType);
+
     // Play shooting sound effect
     this.gameAudio.playSplootSound();
 
@@ -456,26 +530,34 @@ class DiaperDefenseEngine implements GameEngine {
         4, 25);
     }, 100);
 
-    // Create new poop at baby's position
-    const poop = Poop.create(
-      this.scene,
+    // Create new poop at baby's position with predetermined type using object pool
+    const poop = this.poopPool.getPoop(
       baby.position.x,
       baby.position.y - 30, // Slightly below baby
-      this.scoreSystem.getScore(), // Current score for type probability
-      this.config.scene.bounds.bottom
+      poopType as PoopType
     );
 
+    // Check entity limits for performance
+    const qualitySettings = this.performanceManager.getQualitySettings();
+    if (this.poops.length >= qualitySettings.maxEntities) {
+      // Remove oldest poop to make room
+      const oldestPoop = this.poops.shift();
+      if (oldestPoop) {
+        oldestPoop.destroy();
+      }
+    }
+    
     this.poops.push(poop);
     
     // Create special effects based on poop type when shot
-    if (poop.type === 'fancy') {
+    if (poop.type === PoopType.FANCY) {
       // Fancy poop gets a golden trail effect
       setTimeout(() => {
         this.particleSystem.createEffect(ParticleType.CATCH_SPARKLE, 
           new THREE.Vector3(poop.position.x, poop.position.y + 20, poop.position.z), 
           3, 20);
       }, 200);
-    } else if (poop.type === 'boob') {
+    } else if (poop.type === PoopType.BOOB) {
       // Boob poop gets an ominous effect
       setTimeout(() => {
         this.particleSystem.createEffect(ParticleType.MISS_SPLASH, 
@@ -484,14 +566,21 @@ class DiaperDefenseEngine implements GameEngine {
       }, 300);
     }
     
-    console.log(`Baby shot ${poop.type} poop! Total poops: ${this.poops.length}`);
+    // Reset baby expression after a short delay
+    setTimeout(() => {
+      if (baby.isActive) {
+        baby.resetExpression();
+      }
+    }, 1000);
+    
+    // console.log(`Baby shot ${poop.type} poop! Total poops: ${this.poops.length}`);
   }
 
   /**
    * Callback when game starts
    */
   private onGameStart(): void {
-    console.log('Game started!');
+    // console.log('Game started!');
     this.scoreSystem.reset();
     this.resetGameEntities();
     
@@ -503,9 +592,9 @@ class DiaperDefenseEngine implements GameEngine {
    * Callback when game ends
    */
   private onGameOver(): void {
-    console.log('Game over!');
+    // console.log('Game over!');
     const stats = this.scoreSystem.getStats();
-    console.log('Final stats:', stats);
+    // console.log('Final stats:', stats);
     
     // Play game over sound and stop background music
     this.gameAudio.playFailSound();
@@ -525,7 +614,7 @@ class DiaperDefenseEngine implements GameEngine {
    * Reset all game entities to initial state
    */
   private resetGameEntities(): void {
-    console.log('Resetting game entities');
+    // console.log('Resetting game entities');
     
     // Reset diaper
     if (this.diaper) {
@@ -541,8 +630,37 @@ class DiaperDefenseEngine implements GameEngine {
     this.poops.forEach(poop => poop.destroy());
     this.poops = [];
     
+    // Clear object pool (returns all objects to inactive state)
+    // Note: We don't clear the pool entirely to maintain performance benefits
+    
     // Clear all particles
     this.particleSystem.clear();
+  }
+
+  /**
+   * Apply quality settings to renderer and systems
+   */
+  private applyQualitySettings(settings: QualitySettings): void {
+    try {
+      // Apply renderer settings
+      this.renderer.setPixelRatio(settings.pixelRatio);
+      
+      // Update particle system settings
+      this.particleSystem.setMaxParticles(settings.particleCount);
+      
+      // Apply entity limits (this would be used in entity spawning logic)
+      // The maxEntities setting is used by the game logic to limit concurrent entities
+      
+      console.log('Applied quality settings:', settings);
+    } catch (error) {
+      this.errorHandler.handleError(
+        ErrorType.RENDERING,
+        ErrorSeverity.MEDIUM,
+        'Failed to apply quality settings',
+        error instanceof Error ? error : new Error(String(error)),
+        { settings }
+      );
+    }
   }
 
   /**
@@ -559,9 +677,13 @@ class DiaperDefenseEngine implements GameEngine {
    * Update miss display in UI
    */
   private updateMissDisplay(misses: number, consecutive: number): void {
+    // console.log(`UI UPDATE: Updating miss display - Total: ${misses}, Consecutive: ${consecutive}`);
     const missElement = document.getElementById('miss-value');
     if (missElement) {
       missElement.textContent = `${misses} (${consecutive} consecutive)`;
+      // console.log(`UI UPDATE: Miss element updated to: ${missElement.textContent}`);
+    } else {
+      // console.log('UI UPDATE: Miss element not found!');
     }
   }
   
@@ -699,8 +821,8 @@ class DiaperDefenseEngine implements GameEngine {
     this.inputManager.setTouchSensitivity(1.5);
     
     // Validate input configuration
-    const config = this.inputManager.getConfiguration();
-    console.log('Input system configured:', config);
+    // const config = this.inputManager.getConfiguration();
+    // console.log('Input system configured:', config);
   }
 
   stop(): void {
@@ -720,13 +842,38 @@ class DiaperDefenseEngine implements GameEngine {
   private gameLoop = (currentTime: number): void => {
     if (!this.isRunning) return;
 
-    const deltaTime = currentTime - this.lastTime;
-    this.lastTime = currentTime;
+    try {
+      const deltaTime = currentTime - this.lastTime;
+      this.lastTime = currentTime;
 
-    this.update(deltaTime);
-    this.render();
+      const updateStart = performance.now();
+      this.update(deltaTime);
+      const updateTime = performance.now() - updateStart;
 
-    requestAnimationFrame(this.gameLoop);
+      const renderStart = performance.now();
+      this.render();
+      const renderTime = performance.now() - renderStart;
+
+      // Update performance metrics
+      this.performanceManager.updateMetrics(deltaTime, renderTime, updateTime);
+
+      requestAnimationFrame(this.gameLoop);
+    } catch (error) {
+      this.errorHandler.handleError(
+        ErrorType.RENDERING,
+        ErrorSeverity.HIGH,
+        'Game loop error occurred',
+        error instanceof Error ? error : new Error(String(error)),
+        { gameState: this.gameState, currentTime, deltaTime: currentTime - this.lastTime }
+      );
+      
+      // Try to continue the game loop after a brief delay
+      setTimeout(() => {
+        if (this.isRunning) {
+          requestAnimationFrame(this.gameLoop);
+        }
+      }, 100);
+    }
   };
 }
 
@@ -743,7 +890,7 @@ const restartButton = document.getElementById('restart-button') as HTMLButtonEle
 
 // Enhanced Game State Management with sophisticated smooth transitions
 function showSplashScreen(): void {
-  console.log('Transitioning to splash screen');
+  // console.log('Transitioning to splash screen');
   
   // Add exit animations to other screens
   gameHud.classList.remove('fade-in', 'slide-in-right');
@@ -775,7 +922,7 @@ function showSplashScreen(): void {
 }
 
 function showGameHud(): void {
-  console.log('Transitioning to game HUD');
+  // console.log('Transitioning to game HUD');
   
   // Add exit animations to other screens
   splashScreen.classList.remove('fade-in', 'scale-in');
@@ -800,7 +947,7 @@ function showGameHud(): void {
 }
 
 function showGameOver(): void {
-  console.log('Transitioning to game over screen');
+  // console.log('Transitioning to game over screen');
   
   // Add exit animations to other screens
   splashScreen.classList.remove('fade-in', 'scale-in');
@@ -846,7 +993,7 @@ playButton.addEventListener('click', async () => {
   setTimeout(() => {
     showGameHud();
     gameEngine.start();
-    console.log('Game started from splash screen');
+    // console.log('Game started from splash screen');
     
     // Clean up button animation
     playButton.classList.remove('scale-in');
@@ -867,7 +1014,7 @@ restartButton.addEventListener('click', async () => {
     showGameHud();
     gameEngine.resetGame();
     gameEngine.start();
-    console.log('Game restarted');
+    // console.log('Game restarted');
     
     // Clean up button animation
     restartButton.classList.remove('bounce-in');
@@ -882,4 +1029,4 @@ window.addEventListener('resize', () => {
 // Initialize with splash screen
 showSplashScreen();
 
-console.log('Diaper Defense game initialized');
+// console.log('Diaper Defense game initialized');

@@ -85,7 +85,7 @@ export class AssetManager {
     };
 
     this.loadingManager.onLoad = () => {
-      console.log('All assets loaded successfully');
+      // console.log('All assets loaded successfully');
       if (this.onCompleteCallback) {
         this.onCompleteCallback();
       }
@@ -163,7 +163,7 @@ export class AssetManager {
       this.textures.set(name, texture);
       metadata.state = AssetLoadState.LOADED;
       
-      console.log(`Texture loaded successfully: ${name}`);
+      // console.log(`Texture loaded successfully: ${name}`);
       return texture;
       
     } catch (error) {
@@ -206,14 +206,17 @@ export class AssetManager {
    * Create fallback texture with appropriate sprite design when texture loading fails
    */
   private createFallbackTexture(name: string, color: number): THREE.Texture {
-    console.log(`Creating fallback texture for ${name} with color: #${color.toString(16)}`);
+    // console.log(`Creating fallback texture for ${name} with color: #${color.toString(16)}`);
     
     let texture: THREE.Texture;
     
     // Use TextureGenerator for game-specific sprites, fallback to solid color for others
     switch (name) {
-      case 'baby':
+      case 'baby-crying':
         texture = TextureGenerator.createBabyTexture();
+        break;
+      case 'baby-happy':
+        texture = TextureGenerator.createHappyBabyTexture();
         break;
       case 'diaper':
         texture = TextureGenerator.createDiaperTexture();
@@ -260,7 +263,7 @@ export class AssetManager {
     url: string;
     fallbackColor?: number;
   }>): Promise<void> {
-    console.log(`Starting to load ${assets.length} assets...`);
+    // console.log(`Starting to load ${assets.length} assets...`);
     
     this.loadingProgress.total = assets.length;
     this.loadingProgress.loaded = 0;
@@ -285,7 +288,7 @@ export class AssetManager {
 
     await Promise.allSettled(loadPromises);
     
-    console.log(`Asset loading complete. Loaded: ${this.loadingProgress.loaded}/${this.loadingProgress.total}`);
+    // console.log(`Asset loading complete. Loaded: ${this.loadingProgress.loaded}/${this.loadingProgress.total}`);
     
     if (this.onCompleteCallback) {
       this.onCompleteCallback();
@@ -407,8 +410,13 @@ export class AssetManager {
   public async preloadGameAssets(): Promise<void> {
     const gameAssets = [
       {
-        name: 'baby',
-        url: '/baby-sprite.png',
+        name: 'baby-crying',
+        url: '/baby-crying-sprite.png',
+        fallbackColor: 0xFFB6C1 // Light pink
+      },
+      {
+        name: 'baby-happy',
+        url: '/baby-happy-sprite.png',
         fallbackColor: 0xFFB6C1 // Light pink
       },
       {
@@ -441,7 +449,7 @@ export class AssetManager {
    * This is useful for development and as a fallback when assets are not available
    */
   public loadPlaceholderTextures(): void {
-    console.log('Loading placeholder textures...');
+    // console.log('Loading placeholder textures...');
     
     const placeholderTextures = TextureGenerator.createAllGameTextures();
     
@@ -465,7 +473,7 @@ export class AssetManager {
       percentage: 100
     };
     
-    console.log(`Loaded ${placeholderTextures.size} placeholder textures`);
+    // console.log(`Loaded ${placeholderTextures.size} placeholder textures`);
     
     if (this.onCompleteCallback) {
       this.onCompleteCallback();

@@ -36,7 +36,7 @@ export class Poop extends Entity {
     [PoopType.REGULAR]: {
       points: 10,
       color: 0x8B4513, // Brown
-      probability: 0.7 // 70% base probability
+      probability: 0.6 // 60% base probability
     },
     [PoopType.FANCY]: {
       points: 50,
@@ -46,7 +46,7 @@ export class Poop extends Entity {
     [PoopType.BOOB]: {
       points: -1, // Special value indicating game over
       color: 0xFF69B4, // Hot pink
-      probability: 0.05 // 5% base probability
+      probability: 0.15 // 15% base probability (increased for better testing)
     }
   };
 
@@ -106,10 +106,7 @@ export class Poop extends Entity {
     // Add rotation animation for visual appeal
     this.updateRotationAnimation(deltaTime);
     
-    // Check if poop has fallen off screen
-    if (this.position.y < this.screenBottom) {
-      this.destroy();
-    }
+    // Note: Don't auto-destroy when off screen - let the main game loop handle miss detection
   }
   
   /**
@@ -253,6 +250,62 @@ export class Poop extends Entity {
         return 'Boob Poop';
       default:
         return 'Unknown Poop';
+    }
+  }
+
+  /**
+   * Reset the poop entity for object pooling
+   * @param scene Three.js scene
+   * @param x X position
+   * @param y Y position
+   * @param type Poop type
+   * @param screenBottom Bottom boundary of the screen
+   */
+  public reset(
+    scene: THREE.Scene,
+    x: number,
+    y: number,
+    type: PoopType,
+    screenBottom: number = -300
+  ): void {
+    // Reset type and points
+    (this as any).type = type;
+    (this as any).points = Poop.typeConfigs[type].points;
+    this.screenBottom = screenBottom;
+
+    // Reset position and velocity
+    this.setPosition(x, y, 0);
+    this.fallSpeed = this.baseSpeed + (Math.random() - 0.5) * 50;
+    this.setVelocity(0, -this.fallSpeed, 0);
+
+    // Reset rotation
+    this.rotationSpeed = (Math.random() - 0.5) * 4;
+    this.mesh.rotation.z = 0;
+    this.mesh.scale.set(1, 1, 1);
+
+    // Reset material properties
+    if (this.mesh.material instanceof THREE.MeshBasicMaterial) {
+      const config = Poop.typeConfigs[type];
+      
+      // Update texture and color for the new type
+      const assetManager = AssetManager.getInstance();
+      const textureKey = `poop-${type}`;
+      const poopTexture = assetManager.getTexture(textureKey);
+      
+      this.mesh.material.map = poopTexture || null;
+      this.mesh.material.color.setHex(poopTexture ? 0xffffff : config.color);
+      this.mesh.material.opacity = 1.0;
+      this.mesh.material.transparent = true;
+      this.mesh.material.needsUpdate = true;
+    }
+
+    // Reactivate the entity
+    this.isActive = true;
+    this.mesh.visible = true;
+
+    // Add back to scene if not already there
+    if (!scene.children.includes(this.mesh)) {
+      scene.add(this.mesh);
     }
   }
 }

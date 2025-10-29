@@ -54,7 +54,7 @@ export class ScoreSystem {
     // Notify score update callbacks
     this.scoreUpdateCallbacks.forEach(callback => callback(this.score));
     
-    console.log(`Score increased by ${points}! Total score: ${this.score}`);
+    // console.log(`Score increased by ${points}! Total score: ${this.score}`);
     return points;
   }
 
@@ -66,19 +66,33 @@ export class ScoreSystem {
     this.misses++;
     this.consecutiveMisses++;
     
-    console.log(`Miss! Total misses: ${this.misses}, Consecutive: ${this.consecutiveMisses}`);
+    // console.log(`SCORE SYSTEM: Miss added! Total misses: ${this.misses}, Consecutive: ${this.consecutiveMisses}, Max allowed: ${this.maxMisses}`);
     
     // Notify miss update callbacks
+    // console.log(`SCORE SYSTEM: Notifying ${this.missUpdateCallbacks.length} miss update callbacks`);
     this.missUpdateCallbacks.forEach(callback => callback(this.misses, this.consecutiveMisses));
     
     // Check if game should end due to consecutive misses
     if (this.consecutiveMisses >= this.maxMisses) {
-      console.log(`Game over! ${this.consecutiveMisses} consecutive misses`);
+      // console.log(`SCORE SYSTEM: GAME OVER TRIGGERED! ${this.consecutiveMisses} consecutive misses >= ${this.maxMisses}`);
       this.triggerGameOver();
       return true;
     }
     
+    // console.log(`SCORE SYSTEM: Game continues, ${this.consecutiveMisses} < ${this.maxMisses}`);
     return false;
+  }
+
+  /**
+   * Reset consecutive misses without adding to total misses
+   * Used when missing boob poop (which is actually good)
+   */
+  public resetConsecutiveMisses(): void {
+    this.consecutiveMisses = 0;
+    // console.log('Consecutive misses reset');
+    
+    // Notify miss update callbacks
+    this.missUpdateCallbacks.forEach(callback => callback(this.misses, this.consecutiveMisses));
   }
 
   /**
@@ -102,8 +116,11 @@ export class ScoreSystem {
    * Trigger game over and notify all callbacks
    */
   private triggerGameOver(): void {
-    console.log('Game Over triggered by score system');
-    this.gameOverCallbacks.forEach(callback => callback());
+    // console.log(`SCORE SYSTEM: Game Over triggered! Notifying ${this.gameOverCallbacks.length} callbacks`);
+    this.gameOverCallbacks.forEach((callback, index) => {
+      // console.log(`SCORE SYSTEM: Calling game over callback ${index}`);
+      callback();
+    });
   }
 
   /**
@@ -142,7 +159,7 @@ export class ScoreSystem {
     this.misses = 0;
     this.consecutiveMisses = 0;
     
-    console.log('Score system reset');
+    // console.log('Score system reset');
     
     // Notify callbacks of reset
     this.scoreUpdateCallbacks.forEach(callback => callback(this.score));

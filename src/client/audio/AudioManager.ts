@@ -61,7 +61,7 @@ export class AudioManager {
       this.contextState = this.context.state;
       this.context.addEventListener('statechange', () => {
         this.contextState = this.context!.state;
-        console.log('Audio context state changed to:', this.contextState);
+        // // console.log('Audio context state changed to:', this.contextState);
       });
 
       // Try to resume context if suspended
@@ -70,7 +70,7 @@ export class AudioManager {
           await this.context.resume();
           this.isUserInteractionRequired = false;
         } catch (error) {
-          console.log('Audio context requires user interaction to resume');
+          // // console.log('Audio context requires user interaction to resume');
           this.isUserInteractionRequired = true;
         }
       } else {
@@ -78,7 +78,7 @@ export class AudioManager {
       }
 
       this.isInitialized = true;
-      console.log('AudioManager initialized successfully');
+      // // console.log('AudioManager initialized successfully');
       
     } catch (error) {
       console.error('Failed to initialize AudioManager:', error);
@@ -98,7 +98,7 @@ export class AudioManager {
     try {
       await this.context.resume();
       this.isUserInteractionRequired = false;
-      console.log('Audio context resumed after user interaction');
+      // // console.log('Audio context resumed after user interaction');
     } catch (error) {
       console.error('Failed to resume audio context:', error);
     }
@@ -116,11 +116,11 @@ export class AudioManager {
     try {
       // Check if sound is already loaded
       if (this.sounds.has(name)) {
-        console.log(`Sound '${name}' already loaded`);
+        // console.log(`Sound '${name}' already loaded`);
         return;
       }
 
-      console.log(`Loading sound: ${name} from ${url}`);
+      // console.log(`Loading sound: ${name} from ${url}`);
       
       // Fetch audio data
       const response = await fetch(url);
@@ -135,7 +135,7 @@ export class AudioManager {
       
       // Store in sound map
       this.sounds.set(name, audioBuffer);
-      console.log(`Sound '${name}' loaded successfully`);
+      // console.log(`Sound '${name}' loaded successfully`);
       
     } catch (error) {
       console.error(`Failed to load sound '${name}':`, error);
@@ -150,7 +150,7 @@ export class AudioManager {
    */
   public addSoundBuffer(name: string, buffer: AudioBuffer): void {
     this.sounds.set(name, buffer);
-    console.log(`Sound buffer '${name}' added successfully`);
+    // console.log(`Sound buffer '${name}' added successfully`);
   }
 
   /**
@@ -163,7 +163,7 @@ export class AudioManager {
       // Create a short silent buffer
       const buffer = this.context.createBuffer(1, this.context.sampleRate * 0.1, this.context.sampleRate);
       this.sounds.set(name, buffer);
-      console.log(`Created silent fallback buffer for '${name}'`);
+      // console.log(`Created silent fallback buffer for '${name}'`);
     } catch (error) {
       console.error(`Failed to create silent buffer for '${name}':`, error);
     }
@@ -174,7 +174,7 @@ export class AudioManager {
    */
   public playSound(name: string, volume: number = 1.0, pitch: number = 1.0): void {
     if (!this.isInitialized || !this.context || this.contextState !== 'running') {
-      console.log(`Cannot play sound '${name}': audio context not ready`);
+      // console.log(`Cannot play sound '${name}': audio context not ready`);
       return;
     }
 
@@ -223,7 +223,7 @@ export class AudioManager {
    */
   public playBackgroundMusic(name: string, loop: boolean = true): void {
     if (!this.isInitialized || !this.context || this.contextState !== 'running') {
-      console.log(`Cannot play background music '${name}': audio context not ready`);
+      // console.log(`Cannot play background music '${name}': audio context not ready`);
       return;
     }
 
@@ -263,7 +263,7 @@ export class AudioManager {
         gainNode.disconnect();
       });
       
-      console.log(`Background music '${name}' started`);
+      // console.log(`Background music '${name}' started`);
       
     } catch (error) {
       console.error(`Failed to play background music '${name}':`, error);
@@ -282,7 +282,7 @@ export class AudioManager {
         console.error('Error stopping background music:', error);
       }
       this.backgroundMusic = null;
-      console.log('Background music stopped');
+      // console.log('Background music stopped');
     }
   }
 
@@ -291,7 +291,7 @@ export class AudioManager {
    */
   public setMasterVolume(volume: number): void {
     this.masterVolume = Math.max(0, Math.min(1, volume));
-    console.log('Master volume set to:', this.masterVolume);
+    // console.log('Master volume set to:', this.masterVolume);
   }
 
   /**
@@ -299,7 +299,7 @@ export class AudioManager {
    */
   public setSfxVolume(volume: number): void {
     this.sfxVolume = Math.max(0, Math.min(1, volume));
-    console.log('SFX volume set to:', this.sfxVolume);
+    // console.log('SFX volume set to:', this.sfxVolume);
   }
 
   /**
@@ -307,7 +307,7 @@ export class AudioManager {
    */
   public setMusicVolume(volume: number): void {
     this.musicVolume = Math.max(0, Math.min(1, volume));
-    console.log('Music volume set to:', this.musicVolume);
+    // console.log('Music volume set to:', this.musicVolume);
   }
 
   /**
@@ -368,7 +368,7 @@ export class AudioManager {
     );
     
     await Promise.allSettled(loadPromises);
-    console.log('Sound preloading completed');
+    // console.log('Sound preloading completed');
   }
 
   /**
@@ -387,6 +387,6 @@ export class AudioManager {
     this.isUserInteractionRequired = true;
     this.initializationPromise = null;
     
-    console.log('AudioManager disposed');
+    // console.log('AudioManager disposed');
   }
 }
