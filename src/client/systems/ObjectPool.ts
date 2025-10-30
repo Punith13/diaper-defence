@@ -96,6 +96,10 @@ export class PoopPool {
   private screenBottom: number;
 
   constructor(scene: THREE.Scene, screenBottom: number, initialSize: number = 15, maxSize: number = 100) {
+    if (!scene) {
+      throw new Error('PoopPool constructor: scene parameter is required');
+    }
+    
     this.scene = scene;
     this.screenBottom = screenBottom;
     
@@ -110,19 +114,28 @@ export class PoopPool {
   /**
    * Factory function to create new Poop entities
    */
-  private createPoop(): Poop {
-    // Create a default poop that will be reset when used
-    return new Poop(this.scene, 0, 0, PoopType.REGULAR, this.screenBottom);
+  private createPoop(scene?: THREE.Scene, x?: number, y?: number, type?: PoopType, screenBottom?: number): Poop {
+    // Use provided parameters or defaults
+    const actualScene = scene || this.scene;
+    const actualX = x || 0;
+    const actualY = y || 0;
+    const actualType = type || PoopType.REGULAR;
+    const actualScreenBottom = screenBottom || this.screenBottom;
+    
+    return new Poop(actualScene, actualX, actualY, actualType, actualScreenBottom);
   }
 
   /**
    * Get a poop from the pool with specified parameters
    */
   public getPoop(x: number, y: number, type: PoopType): Poop {
-    const poop = this.pool.get();
+    if (!this.scene) {
+      console.error('PoopPool.getPoop(): scene is null or undefined');
+      throw new Error('PoopPool scene is invalid');
+    }
     
-    // Reset the poop with new parameters
-    poop.reset(this.scene, x, y, type, this.screenBottom);
+    // Get a poop from the pool, passing the scene and other parameters
+    const poop = this.pool.get(this.scene, x, y, type, this.screenBottom);
     
     return poop;
   }

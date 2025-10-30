@@ -57,6 +57,12 @@ export class Poop extends Entity {
     type: PoopType,
     screenBottom: number = -300
   ) {
+    // Defensive programming: ensure valid type and config
+    if (!type || !Poop.typeConfigs[type]) {
+      console.error(`Invalid poop type: ${type}. Using REGULAR as fallback.`);
+      type = PoopType.REGULAR;
+    }
+    
     const config = Poop.typeConfigs[type];
     
     // Create poop sprite using PlaneGeometry with texture
@@ -268,6 +274,18 @@ export class Poop extends Entity {
     type: PoopType,
     screenBottom: number = -300
   ): void {
+    // Defensive programming: ensure valid scene
+    if (!scene) {
+      console.error('Invalid scene provided to Poop.reset()');
+      return;
+    }
+    
+    // Defensive programming: ensure valid type
+    if (!type || !Poop.typeConfigs[type]) {
+      console.error(`Invalid poop type in reset: ${type}. Using REGULAR as fallback.`);
+      type = PoopType.REGULAR;
+    }
+    
     // Reset type and points
     (this as any).type = type;
     (this as any).points = Poop.typeConfigs[type].points;
@@ -304,7 +322,7 @@ export class Poop extends Entity {
     this.mesh.visible = true;
 
     // Add back to scene if not already there
-    if (!scene.children.includes(this.mesh)) {
+    if (scene && scene.children && !scene.children.includes(this.mesh)) {
       scene.add(this.mesh);
     }
   }

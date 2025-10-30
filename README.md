@@ -17,9 +17,9 @@ Players must make split-second strategic decisions about which poop to catch whi
 - **Dynamic Difficulty Scaling**: Progressive challenge system where baby shooting rate increases by 10% every 15 seconds (minimum 500ms interval), and fancy poop probability scales with score (5% increase per 100 points, max 40%)
 
 - **Three Strategic Poop Types**: 
-  - **🟤 Regular Poop**: 10 points, 60% spawn rate - reliable scoring opportunity
-  - **🟡 Fancy Golden Poop**: 50 points, 25% base rate (increases with score) - high-value risk/reward
-  - **🩷 Boob Poop**: Instant game over if caught, 15% spawn rate - strategic avoidance required
+  - **🟤 Regular Poop**: 10 points, 60% spawn rate - reliable scoring opportunity with brown color (#8B4513)
+  - **🟡 Fancy Golden Poop**: 50 points, 25% base rate (increases with score) - high-value risk/reward with gold color (#FFD700)
+  - **🩷 Boob Poop**: Instant game over if caught, 15% spawn rate - strategic avoidance required with hot pink color (#FF69B4)
 
 - **Advanced Movement System**: Exponential smoothing interpolation (8.0 smoothing factor) with comprehensive input validation, boundary checking, and responsive cross-platform controls that prevent overshooting and jittering
 
@@ -96,25 +96,31 @@ Catch as many falling poop projectiles as possible with your diaper while avoidi
 #### 3. **Know Your Poop Types**
    - **🟤 Brown Poop (Regular)**: 10 points each, 60% spawn rate
      - Your reliable source of points - safe to catch
+     - Falls at base speed (200 units/second) with ±25 variation for unpredictability
      - Creates sparkle effects and plays satisfying "plop" sound
+     - Features rotation animation while falling for visual appeal
    - **🟡 Golden Poop (Fancy)**: 50 points each, 25% base rate (increases with score)
-     - High-value targets worth the risk
+     - High-value targets worth the risk - probability increases 5% per 100 points (max 40%)
+     - Falls with same physics as regular poop but with golden visual effects
      - Creates spectacular particle bursts and special sound effects
-     - Becomes more common as you score higher (5% increase per 100 points)
+     - Triggers enhanced catch animations with scale-up and spin effects
    - **🩷 Pink Poop (Boob)**: INSTANT GAME OVER if caught, 15% spawn rate
-     - **Catching it = Game Over**: Touching this poop immediately ends your game
+     - **Catching it = Game Over**: Touching this poop immediately ends your game with dramatic effects
      - **Missing it = Good**: Letting boob poop fall actually helps by resetting consecutive misses!
-     - Creates ominous effects and warning sounds when shot
+     - Falls with same physics but creates ominous particle effects when shot
+     - Features fade-out animation when caught before triggering game over
      - Strategic decision: sometimes it's better to let it fall than risk catching it
 
 #### 4. **Understanding Game Mechanics**
    - **Baby Behavior**: The baby oscillates smoothly across the top using sine wave motion (150 unit amplitude)
-     - Shoots poop at random intervals (starting at 1000-3000ms, decreasing over time)
+     - Shoots poop at random intervals (starting at 2000ms base, with 0.5-1.5x randomization)
+     - Shooting rate increases by 10% every 15 seconds (minimum 500ms interval for maximum challenge)
      - Features dramatic 4-phase shooting animation: anticipation → burst → intense shake with rotation → recovery
-     - **Dynamic Expressions**: Baby shows different emotions based on poop type
+     - **Dynamic Expressions**: Baby shows different emotions based on poop type being shot
        - 😢 Crying face for regular and boob poop (default state)
        - 😊 Happy face when shooting golden fancy poop
-       - Expression changes briefly during shooting, then returns to crying after 1 second
+       - Expression changes before shooting, then returns to crying after 1 second
+     - Poop is shot from slightly below baby position (30 units down) for realistic trajectory
    - **Progressive Difficulty**: Every 15 seconds, shooting speed increases by 10%
      - Creates natural difficulty curve from casual to intense
      - Minimum 500ms interval ensures maximum challenge is still playable

@@ -32,8 +32,12 @@ export abstract class Entity implements IEntity {
     this.velocity = new THREE.Vector3(0, 0, 0);
     this.isActive = true;
     
-    // Add mesh to scene
-    this.scene.add(this.mesh);
+    // Add mesh to scene (with defensive check)
+    if (this.scene && this.scene.add) {
+      this.scene.add(this.mesh);
+    } else {
+      console.error('Invalid scene provided to Entity constructor');
+    }
   }
 
   /**
