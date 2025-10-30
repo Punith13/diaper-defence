@@ -11,9 +11,9 @@
 ### `/src/client/`
 Client-side Three.js application that runs in the browser
 - `main.ts`: Entry point with Three.js scene setup and API calls
-- `index.html`: HTML template with canvas and UI elements
+- `index.html`: HTML file with canvas and UI elements
 - `index.css`: Styling for the web interface
-- `public/`: Static assets (Earth textures)
+- `public/`: Static assets (game sprites and textures)
 - `vite.config.ts`: Client build configuration
 - `tsconfig.json`: Client-specific TypeScript config
 

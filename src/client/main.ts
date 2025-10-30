@@ -366,7 +366,7 @@ class DiaperDefenseEngine implements GameEngine {
       this.gameAudio.playFancyCatchSound();
     } else if (poop.type === PoopType.REGULAR) {
       this.gameAudio.playPlopSound();
-    } else if (poop.type === PoopType.BOOB) {
+    } else if (poop.type === PoopType.BOMB) {
       this.gameAudio.playWarningSound();
     }
     
@@ -386,8 +386,8 @@ class DiaperDefenseEngine implements GameEngine {
       this.particleSystem.createEffect(ParticleType.CATCH_SPARKLE, poop.position, 6, 50);
       this.particleSystem.createEffect(ParticleType.SCORE_POP, poop.position, 4, 35);
       
-    } else if (poop.type === PoopType.BOOB) {
-      // Boob poop gets ominous effects before game over
+    } else if (poop.type === PoopType.BOMB) {
+      // Bomb poop gets ominous effects before game over
       this.particleSystem.createEffect(ParticleType.MISS_SPLASH, poop.position, 10, 70);
       
       // Create warning effect with red particles
@@ -409,9 +409,9 @@ class DiaperDefenseEngine implements GameEngine {
       }, 300);
     }
     
-    // Check if catching this poop causes game over (boob poop)
+    // Check if catching this poop causes game over (bomb poop)
     if (this.scoreSystem.shouldGameOverOnCatch(poop.type)) {
-      // console.log('Game over: Caught boob poop!');
+      // console.log('Game over: Caught bomb poop!');
       
       // Create dramatic game over particle effect
       setTimeout(() => {
@@ -458,20 +458,20 @@ class DiaperDefenseEngine implements GameEngine {
           // Standard miss effect
           this.particleSystem.createEffect(ParticleType.MISS_SPLASH, splashPosition, 7, 55);
           
-        } else if (poop.type === PoopType.BOOB) {
-          // Missing boob poop creates a different effect (relief?)
+        } else if (poop.type === PoopType.BOMB) {
+          // Missing bomb poop creates a different effect (relief?)
           this.particleSystem.createEffect(ParticleType.SHOOT_PUFF, splashPosition, 8, 60);
         }
         
-        // Only count misses for regular and fancy poop (missing boob poop is actually good!)
+        // Only count misses for regular and fancy poop (missing bomb poop is actually good!)
         let gameOver = false;
         if (poop.type === PoopType.REGULAR || poop.type === PoopType.FANCY) {
           // console.log(`BEFORE MISS: Total misses: ${this.scoreSystem.getMisses()}, Consecutive: ${this.scoreSystem.getConsecutiveMisses()}`);
           gameOver = this.scoreSystem.addMiss();
           // console.log(`AFTER MISS: Type: ${poop.type}, Total misses: ${this.scoreSystem.getMisses()}, Consecutive: ${this.scoreSystem.getConsecutiveMisses()}, Game Over: ${gameOver}`);
-        } else if (poop.type === PoopType.BOOB) {
-          // Missing boob poop is good - reset consecutive misses
-          // console.log('Boob poop missed - that\'s good! Resetting consecutive misses.');
+        } else if (poop.type === PoopType.BOMB) {
+          // Missing bomb poop is good - reset consecutive misses
+          // console.log('Bomb poop missed - that\'s good! Resetting consecutive misses.');
           // console.log(`BEFORE RESET: Consecutive misses: ${this.scoreSystem.getConsecutiveMisses()}`);
           this.scoreSystem.resetConsecutiveMisses();
           // console.log(`AFTER RESET: Consecutive misses: ${this.scoreSystem.getConsecutiveMisses()}`);
@@ -557,8 +557,8 @@ class DiaperDefenseEngine implements GameEngine {
           new THREE.Vector3(poop.position.x, poop.position.y + 20, poop.position.z), 
           3, 20);
       }, 200);
-    } else if (poop.type === PoopType.BOOB) {
-      // Boob poop gets an ominous effect
+    } else if (poop.type === PoopType.BOMB) {
+      // Bomb poop gets an ominous effect
       setTimeout(() => {
         this.particleSystem.createEffect(ParticleType.MISS_SPLASH, 
           new THREE.Vector3(poop.position.x, poop.position.y + 15, poop.position.z), 

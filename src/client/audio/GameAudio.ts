@@ -247,7 +247,7 @@ export class GameAudio {
   }
 
   /**
-   * Play warning sound for boob poop catch
+   * Play warning sound for bomb poop catch
    */
   public playWarningSound(volume: number = 1.0): void {
     this.playGameSound(GameAudio.SOUNDS.WARNING, volume).catch(console.error);

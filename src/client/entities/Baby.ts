@@ -219,7 +219,7 @@ export class Baby extends Entity {
       // Happy expression for golden poop
       texture = assetManager.getTexture('baby-happy');
     } else {
-      // Crying expression for regular and boob poop
+      // Crying expression for regular and bomb poop
       texture = assetManager.getTexture('baby-crying');
     }
     

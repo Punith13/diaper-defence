@@ -8,7 +8,7 @@ import { AssetManager } from '../assets';
 export enum PoopType {
   REGULAR = 'regular',
   FANCY = 'fancy',
-  BOOB = 'boob'
+  BOMB = 'bomb'
 }
 
 /**
@@ -43,9 +43,9 @@ export class Poop extends Entity {
       color: 0xFFD700, // Gold
       probability: 0.25 // 25% base probability
     },
-    [PoopType.BOOB]: {
+    [PoopType.BOMB]: {
       points: -1, // Special value indicating game over
-      color: 0xFF69B4, // Hot pink
+      color: 0x1a1a1a, // Black (bomb color)
       probability: 0.15 // 15% base probability (increased for better testing)
     }
   };
@@ -186,13 +186,13 @@ export class Poop extends Entity {
     const adjustedFancyProb = Math.min(0.4, Poop.typeConfigs[PoopType.FANCY].probability + fancyBonus);
     
     // Adjust probabilities
-    const boobProb = Poop.typeConfigs[PoopType.BOOB].probability; // Boob stays constant
+    const bombProb = Poop.typeConfigs[PoopType.BOMB].probability; // Bomb stays constant
     
     const random = Math.random();
     
-    if (random < boobProb) {
-      return PoopType.BOOB;
-    } else if (random < boobProb + adjustedFancyProb) {
+    if (random < bombProb) {
+      return PoopType.BOMB;
+    } else if (random < bombProb + adjustedFancyProb) {
       return PoopType.FANCY;
     } else {
       return PoopType.REGULAR;
@@ -240,7 +240,7 @@ export class Poop extends Entity {
    * Check if this poop causes game over when caught
    */
   public causesGameOver(): boolean {
-    return this.type === PoopType.BOOB;
+    return this.type === PoopType.BOMB;
   }
 
   /**
@@ -252,8 +252,8 @@ export class Poop extends Entity {
         return 'Regular Poop';
       case PoopType.FANCY:
         return 'Fancy Poop';
-      case PoopType.BOOB:
-        return 'Boob Poop';
+      case PoopType.BOMB:
+        return 'Bomb Poop';
       default:
         return 'Unknown Poop';
     }

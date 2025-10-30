@@ -2,14 +2,14 @@
 
 ## Introduction
 
-Diaper Defense is a casual arcade-style mini-game built with Three.js for the Devvit platform. The game features a baby at the top of the screen shooting "poop darts" downward while the player controls a diaper at the bottom to catch them. Players earn points for catching poop and lose when they drop too many or catch forbidden "boob poop."
+Diaper Defense is a casual arcade-style mini-game built with Three.js for the Devvit platform. The game features a baby at the top of the screen shooting "poop darts" downward while the player controls a diaper at the bottom to catch them. Players earn points for catching poop and lose when they drop too many or catch forbidden "bomb poop."
 
 ## Glossary
 
 - **Game_System**: The complete Diaper Defense arcade game application
 - **Baby_Entity**: The animated character at the top that shoots projectiles
 - **Diaper_Entity**: The player-controlled catcher at the bottom of the screen
-- **Poop_Projectile**: Falling objects that can be regular, fancy (golden), or boob poop (pink)
+- **Poop_Projectile**: Falling objects that can be regular, fancy (golden), or bomb poop (pink)
 - **Game_State**: Current phase of gameplay (START, PLAY, GAME_OVER)
 - **Collision_System**: Detection mechanism for poop-diaper interactions
 - **Score_System**: Point tracking and miss counting functionality
@@ -27,7 +27,7 @@ Diaper Defense is a casual arcade-style mini-game built with Three.js for the De
 2. WHEN a Poop_Projectile intersects with the Diaper_Entity, THE Collision_System SHALL trigger a catch event and remove the projectile
 3. WHEN the player catches a regular poop, THE Score_System SHALL award 10 points
 4. WHEN the player catches a fancy poop, THE Score_System SHALL award 50 points
-5. IF the player catches a boob poop, THEN THE Game_System SHALL immediately trigger game over
+5. IF the player catches a bomb poop, THEN THE Game_System SHALL immediately trigger game over
 
 ### Requirement 2
 
@@ -49,7 +49,7 @@ Diaper Defense is a casual arcade-style mini-game built with Three.js for the De
 
 1. THE Game_System SHALL spawn regular poop projectiles that award 10 points when caught
 2. THE Game_System SHALL spawn fancy poop projectiles that award 50 points when caught
-3. THE Game_System SHALL spawn boob poop projectiles that cause immediate game over when caught
+3. THE Game_System SHALL spawn bomb poop projectiles that cause immediate game over when caught
 4. WHILE the game progresses, THE Game_System SHALL increase fancy poop spawn probability based on player score
 5. THE Poop_Projectile SHALL move downward with slightly randomized velocity
 

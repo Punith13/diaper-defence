@@ -42,8 +42,8 @@ export class ScoreSystem {
       case PoopType.FANCY:
         points = 50;
         break;
-      case PoopType.BOOB:
-        // Boob poop causes immediate game over
+      case PoopType.BOMB:
+        // Bomb poop causes immediate game over
         this.triggerGameOver();
         return 0;
     }
@@ -85,7 +85,7 @@ export class ScoreSystem {
 
   /**
    * Reset consecutive misses without adding to total misses
-   * Used when missing boob poop (which is actually good)
+   * Used when missing bomb poop (which is actually good)
    */
   public resetConsecutiveMisses(): void {
     this.consecutiveMisses = 0;
@@ -96,12 +96,12 @@ export class ScoreSystem {
   }
 
   /**
-   * Check if catching boob poop should trigger game over
+   * Check if catching bomb poop should trigger game over
    * @param poopType Type of poop caught
    * @returns True if game should end
    */
   public shouldGameOverOnCatch(poopType: PoopType): boolean {
-    return poopType === PoopType.BOOB;
+    return poopType === PoopType.BOMB;
   }
 
   /**

@@ -257,9 +257,9 @@ export class TextureGenerator {
   }
 
   /**
-   * Create a boob poop sprite texture (pink/dangerous)
+   * Create a bomb poop sprite texture (black bomb with wick and fire)
    */
-  public static createBoobPoopTexture(): THREE.Texture {
+  public static createBombPoopTexture(): THREE.Texture {
     const canvas = document.createElement('canvas');
     canvas.width = 32;
     canvas.height = 32;
@@ -269,28 +269,47 @@ export class TextureGenerator {
     // Clear background
     ctx.clearRect(0, 0, 32, 32);
     
-    // Pink poop shape
-    ctx.fillStyle = '#FFB6C1';
+    // Black bomb body (round bomb shape)
+    ctx.fillStyle = '#1a1a1a';
     ctx.beginPath();
-    ctx.moveTo(16, 28);
-    ctx.quadraticCurveTo(8, 24, 10, 18);
-    ctx.quadraticCurveTo(6, 12, 12, 10);
-    ctx.quadraticCurveTo(16, 6, 20, 10);
-    ctx.quadraticCurveTo(26, 12, 22, 18);
-    ctx.quadraticCurveTo(24, 24, 16, 28);
+    ctx.arc(16, 18, 10, 0, Math.PI * 2);
     ctx.fill();
     
-    // Warning highlight (red)
-    ctx.fillStyle = '#FF6B6B';
+    // Dark gray highlight for dimension
+    ctx.fillStyle = '#333333';
     ctx.beginPath();
-    ctx.arc(14, 14, 3, 0, Math.PI * 2);
+    ctx.arc(13, 15, 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Warning symbol (exclamation mark)
-    ctx.fillStyle = '#FF0000';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('!', 16, 18);
+    // Wick (brown/tan color)
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(16, 8);
+    ctx.lineTo(16, 3);
+    ctx.stroke();
+    
+    // Fire at the top of the wick (simplified)
+    ctx.fillStyle = '#FF6B35'; // Orange flame
+    ctx.beginPath();
+    ctx.arc(16, 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Inner flame (yellow)
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(16, 2, 1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Danger symbol on the bomb body (X mark instead of emoji)
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(12, 14);
+    ctx.lineTo(20, 22);
+    ctx.moveTo(20, 14);
+    ctx.lineTo(12, 22);
+    ctx.stroke();
     
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -392,7 +411,7 @@ export class TextureGenerator {
     textures.set('diaper', this.createDiaperTexture());
     textures.set('poop-regular', this.createRegularPoopTexture());
     textures.set('poop-fancy', this.createFancyPoopTexture());
-    textures.set('poop-boob', this.createBoobPoopTexture());
+    textures.set('poop-bomb', this.createBombPoopTexture());
     
     return textures;
   }

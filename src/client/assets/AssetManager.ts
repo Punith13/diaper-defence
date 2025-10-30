@@ -227,8 +227,8 @@ export class AssetManager {
       case 'poop-fancy':
         texture = TextureGenerator.createFancyPoopTexture();
         break;
-      case 'poop-boob':
-        texture = TextureGenerator.createBoobPoopTexture();
+      case 'poop-bomb':
+        texture = TextureGenerator.createBombPoopTexture();
         break;
       default:
         // Create a simple colored texture for unknown assets
@@ -435,9 +435,9 @@ export class AssetManager {
         fallbackColor: 0xFFD700 // Gold
       },
       {
-        name: 'poop-boob',
-        url: '/poop-boob.png',
-        fallbackColor: 0xFFB6C1 // Pink
+        name: 'poop-bomb',
+        url: '/poop-bomb.png',
+        fallbackColor: 0x1a1a1a // Black (bomb color)
       }
     ];
 

@@ -195,7 +195,7 @@ export class SoundGenerator {
   }
 
   /**
-   * Generate a warning sound for boob poop catch
+   * Generate a warning sound for bomb poop catch
    * Creates an ominous warning tone
    */
   public generateWarningSound(): AudioBuffer {

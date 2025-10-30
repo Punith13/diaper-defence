@@ -29,7 +29,7 @@
     - _Requirements: 1.1, 1.3, 5.3_
 
   - [x] 2.4 Implement Poop projectile system
-    - Create Poop class with different types (regular, fancy, boob)
+    - Create Poop class with different types (regular, fancy, bomb)
     - Implement downward movement with randomized velocity
     - Set up poop type probability system with score-based scaling
     - Create sprite meshes for each poop type with distinct colors
@@ -108,7 +108,7 @@
     - ✅ Create "sploot" sound for baby shooting
     - ✅ Add "fail" tone for game over
     - ✅ Add fancy catch sound for golden poop
-    - ✅ Add warning sound for boob poop catches
+    - ✅ Add warning sound for bomb poop catches
     - ✅ Integrate all sound effects with game events and particle systems
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
