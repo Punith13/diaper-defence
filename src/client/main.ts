@@ -5,6 +5,8 @@ import { CollisionSystem, ScoreSystem, GameStateManager, GameState, PoopPool, Er
 import { ParticleSystem, ParticleType } from './effects';
 import { GameAudio } from './audio';
 import { AssetManager } from './assets';
+import { HighScoreManager } from './highscore/HighScoreManager';
+import { SaveScoreResponse } from '../shared/types/api';
 
 // Core Game Engine Interface
 interface GameEngine {
@@ -55,6 +57,7 @@ class DiaperDefenseEngine implements GameEngine {
   private poopPool: PoopPool;
   private errorHandler: ErrorHandler;
   private performanceManager: PerformanceManager;
+  private highScoreManager: HighScoreManager;
   
   // Game entities
   private diaper: Diaper | null = null;
@@ -141,12 +144,16 @@ class DiaperDefenseEngine implements GameEngine {
     }
     this.assetManager = AssetManager.getInstance();
     this.poopPool = new PoopPool(this.scene, this.config.scene.bounds.bottom);
+    this.highScoreManager = HighScoreManager.getInstance();
     
     // Initialize game state
     this.gameState = this.gameStateManager.getCurrentState();
     
     // Setup system callbacks
     this.setupSystemCallbacks();
+    
+    // Initialize high score system
+    this.initializeHighScoreSystem();
 
     this.init();
   }
@@ -212,6 +219,93 @@ class DiaperDefenseEngine implements GameEngine {
       // console.log('Audio system initialized');
     } catch (error) {
       console.error('Failed to initialize audio system:', error);
+    }
+  }
+
+  /**
+   * Initialize high score system and set up callbacks with graceful fallback
+   */
+  private async initializeHighScoreSystem(): Promise<void> {
+    try {
+      // Attempt to initialize with timeout
+      const initPromise = this.highScoreManager.initialize();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('High score initialization timeout')), 5000);
+      });
+
+      await Promise.race([initPromise, timeoutPromise]);
+      
+      // Perform health check after initialization
+      const isHealthy = await this.highScoreManager.performHealthCheck();
+      if (!isHealthy) {
+        throw new Error('High score system health check failed');
+      }
+      
+      // Set up high score event callbacks
+      this.highScoreManager.onScoreSaved((response: SaveScoreResponse) => {
+        this.updateScoreStatus(response);
+      });
+      
+      this.highScoreManager.onError((error: string) => {
+        this.updateScoreStatus(null, error);
+      });
+      
+      console.log('High score system initialized and healthy');
+      
+    } catch (error) {
+      console.error('Failed to initialize high score system:', error);
+      
+      // Report error but continue game execution
+      this.errorHandler.handleError(
+        ErrorType.NETWORK,
+        ErrorSeverity.MEDIUM,
+        'High score system initialization failed - continuing in offline mode',
+        error instanceof Error ? error : new Error(String(error)),
+        { 
+          highScoreSystem: true,
+          fallbackMode: true,
+          errorType: error instanceof Error ? error.message : 'Unknown error'
+        }
+      );
+      
+      // Enable graceful degradation
+      this.highScoreManager.enableGracefulDegradation();
+      
+      // Disable high score features in UI
+      this.disableHighScoreFeatures();
+    }
+  }
+
+  /**
+   * Disable high score features when system is unavailable
+   */
+  private disableHighScoreFeatures(): void {
+    try {
+      // Hide high score button if high score system failed to initialize
+      const highScoreButton = document.getElementById('high-score-button') as HTMLButtonElement;
+      if (highScoreButton) {
+        highScoreButton.style.display = 'none';
+        highScoreButton.disabled = true;
+        highScoreButton.classList.remove('pulse'); // Remove any animations
+      }
+      
+      // Update score status to indicate offline mode (but clear it after a delay)
+      this.updateScoreStatus(null, 'Playing in offline mode - high scores unavailable');
+      
+      // Clear the offline message after a few seconds to not clutter the UI
+      setTimeout(() => {
+        const statusElement = document.getElementById('score-status');
+        if (statusElement && statusElement.textContent?.includes('offline mode')) {
+          statusElement.textContent = '';
+          statusElement.className = 'score-status';
+        }
+      }, 5000);
+      
+      console.log('High score features disabled - game will continue in offline mode');
+      
+    } catch (error) {
+      console.error('Error disabling high score features:', error);
+      // Even if this fails, the game should continue
     }
   }
 
@@ -606,8 +700,98 @@ class DiaperDefenseEngine implements GameEngine {
       finalScoreElement.textContent = stats.score.toString();
     }
     
+    // Clear previous score status
+    this.updateScoreStatus(null, null);
+    
+    // Automatically save score when game ends (if high score system is available)
+    this.saveScoreOnGameOver();
+    
     // Show game over screen
     showGameOver();
+  }
+
+  /**
+   * Automatically save score when game ends
+   */
+  private async saveScoreOnGameOver(): Promise<void> {
+    try {
+      // Check if high score system is ready and available
+      if (!this.highScoreManager.isReady()) {
+        console.log('High score system not ready, skipping automatic save');
+        return;
+      }
+
+      const stats = this.scoreSystem.getStats();
+      const gameTime = this.gameStateManager.getGameTime();
+      
+      // Only save if we have a meaningful score (greater than 0)
+      if (stats.score > 0) {
+        console.log(`Automatically saving score on game over: ${stats.score} (${gameTime}ms)`);
+        
+        // Show saving status to user
+        this.updateScoreStatus(null, null); // Clear any previous status
+        const statusElement = document.getElementById('score-status');
+        if (statusElement) {
+          statusElement.textContent = 'Saving score...';
+          statusElement.className = 'score-status saving';
+        }
+        
+        // Attempt to save the score
+        const response = await this.highScoreManager.saveCurrentScore();
+        
+        if (response) {
+          console.log('Score saved successfully on game over:', response);
+        } else {
+          console.warn('Score save returned null response');
+        }
+      } else {
+        console.log('Score is 0, skipping automatic save');
+      }
+    } catch (error) {
+      console.warn('Failed to automatically save score on game over:', error);
+      
+      // Show a subtle error indication but don't interrupt the game flow
+      this.updateScoreStatus(null, 'Score save failed - you can try again from the high scores button');
+      
+      // Report error for debugging but don't throw
+      this.errorHandler.handleError(
+        ErrorType.NETWORK,
+        ErrorSeverity.LOW, // Low severity since it's automatic and user can retry
+        'Automatic score save failed on game over',
+        error instanceof Error ? error : new Error(String(error)),
+        { 
+          score: this.scoreSystem.getScore(),
+          gameTime: this.gameStateManager.getGameTime(),
+          automatic: true
+        }
+      );
+    }
+  }
+
+  /**
+   * Update score save status in the UI
+   */
+  private updateScoreStatus(response: SaveScoreResponse | null, error: string | null = null): void {
+    const statusElement = document.getElementById('score-status');
+    if (!statusElement) return;
+
+    if (error) {
+      statusElement.textContent = 'Failed to save score';
+      statusElement.className = 'score-status error';
+    } else if (response) {
+      if (response.success) {
+        const message = response.message || 'Score saved successfully!';
+        statusElement.textContent = message;
+        statusElement.className = 'score-status success';
+      } else {
+        statusElement.textContent = 'Failed to save score';
+        statusElement.className = 'score-status error';
+      }
+    } else {
+      // Clear status
+      statusElement.textContent = '';
+      statusElement.className = 'score-status';
+    }
   }
 
   /**
@@ -887,6 +1071,9 @@ const playButton = document.getElementById('play-button') as HTMLButtonElement;
 const gameHud = document.getElementById('game-hud') as HTMLDivElement;
 const gameOverScreen = document.getElementById('game-over-screen') as HTMLDivElement;
 const restartButton = document.getElementById('restart-button') as HTMLButtonElement;
+const highScoreButton = document.getElementById('high-score-button') as HTMLButtonElement;
+const leaderboardModal = document.getElementById('leaderboard-modal') as HTMLDivElement;
+const leaderboardClose = document.getElementById('leaderboard-close') as HTMLButtonElement;
 
 // Enhanced Game State Management with sophisticated smooth transitions
 function showSplashScreen(): void {
@@ -965,9 +1152,17 @@ function showGameOver(): void {
     gameOverScreen.classList.remove('fade-out');
     gameOverScreen.classList.add('fade-in', 'bounce-in');
     
+    // Show high score button if high score system is available
+    updateHighScoreButtonVisibility();
+    
     // Add pulse animation to restart button after entrance
     setTimeout(() => {
       restartButton.classList.add('pulse');
+      
+      // Also add pulse to high score button if visible
+      if (highScoreButton.style.display !== 'none') {
+        highScoreButton.classList.add('pulse');
+      }
     }, 600);
     
     // Deactivate input when game is over
@@ -975,6 +1170,134 @@ function showGameOver(): void {
     
   }, 400); // Slightly longer delay for dramatic effect
 }
+
+// High Score Button Management
+function updateHighScoreButtonVisibility(): void {
+  try {
+    const highScoreManager = HighScoreManager.getInstance();
+    
+    if (highScoreManager.isReady()) {
+      // High score system is available, show the button
+      highScoreButton.style.display = 'inline-block';
+      (highScoreButton as HTMLButtonElement).disabled = false;
+    } else {
+      // High score system is not available, hide the button
+      highScoreButton.style.display = 'none';
+      (highScoreButton as HTMLButtonElement).disabled = true;
+    }
+  } catch (error) {
+    console.error('Error updating high score button visibility:', error);
+    // Default to hiding the button on error
+    highScoreButton.style.display = 'none';
+    (highScoreButton as HTMLButtonElement).disabled = true;
+  }
+}
+
+// Leaderboard UI Management
+async function showLeaderboard(): Promise<void> {
+  let modalShown = false;
+  
+  try {
+    const highScoreManager = HighScoreManager.getInstance();
+    
+    // Check if high score system is available
+    if (!highScoreManager.isReady()) {
+      throw new Error('High score system is not available');
+    }
+    
+    // Show modal immediately with loading state
+    leaderboardModal.style.display = 'flex';
+    modalShown = true;
+    
+    const loadingElement = document.getElementById('leaderboard-loading');
+    const errorElement = document.getElementById('leaderboard-error');
+    const listElement = document.getElementById('leaderboard-list');
+    
+    if (loadingElement && errorElement && listElement) {
+      loadingElement.style.display = 'block';
+      errorElement.style.display = 'none';
+      listElement.style.display = 'none';
+    }
+    
+    await highScoreManager.showLeaderboard();
+    
+  } catch (error) {
+    console.error('Failed to show leaderboard:', error);
+    
+    // Determine user-friendly error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    let userMessage = 'Failed to load leaderboard. Please try again.';
+    
+    if (errorMessage.includes('not available') || errorMessage.includes('offline')) {
+      userMessage = 'High scores are currently unavailable. Please check your connection.';
+    } else if (errorMessage.includes('timeout')) {
+      userMessage = 'Request timed out. Please check your connection and try again.';
+    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      userMessage = 'Network error. Please check your connection and try again.';
+    }
+    
+    // Show modal with error message if not already shown
+    if (!modalShown) {
+      leaderboardModal.style.display = 'flex';
+    }
+    
+    const errorElement = document.getElementById('leaderboard-error');
+    const loadingElement = document.getElementById('leaderboard-loading');
+    const listElement = document.getElementById('leaderboard-list');
+    
+    if (errorElement && loadingElement && listElement) {
+      errorElement.textContent = userMessage;
+      errorElement.style.display = 'block';
+      loadingElement.style.display = 'none';
+      listElement.style.display = 'none';
+    }
+    
+    // Also show error in score status area as backup
+    const statusElement = document.getElementById('score-status');
+    if (statusElement) {
+      statusElement.textContent = userMessage;
+      statusElement.className = 'score-status error';
+      
+      // Clear after a delay
+      setTimeout(() => {
+        if (statusElement.textContent === userMessage) {
+          statusElement.textContent = '';
+          statusElement.className = 'score-status';
+        }
+      }, 5000);
+    }
+  }
+}
+
+function hideLeaderboard(): void {
+  try {
+    const highScoreManager = HighScoreManager.getInstance();
+    
+    // Check if manager is available before calling its methods
+    if (highScoreManager.isReady()) {
+      highScoreManager.hideLeaderboard();
+    } else {
+      // Fallback to direct DOM manipulation
+      performFallbackHideLeaderboard();
+    }
+  } catch (error) {
+    console.error('Failed to hide leaderboard:', error);
+    // Fallback to direct DOM manipulation
+    performFallbackHideLeaderboard();
+  }
+}
+
+function performFallbackHideLeaderboard(): void {
+  leaderboardModal.classList.remove('fade-in');
+  leaderboardModal.classList.add('fade-out');
+  
+  setTimeout(() => {
+    leaderboardModal.style.display = 'none';
+    leaderboardModal.classList.remove('fade-out');
+  }, 300);
+}
+
+
 
 // Export for future use in game logic
 (window as any).showGameOver = showGameOver;
@@ -1021,10 +1344,100 @@ restartButton.addEventListener('click', async () => {
   }, 100);
 });
 
+highScoreButton.addEventListener('click', async () => {
+  // Prevent multiple clicks while processing
+  if ((highScoreButton as HTMLButtonElement).disabled) {
+    return;
+  }
+  
+  // Remove pulse animation when clicked
+  highScoreButton.classList.remove('pulse');
+  
+  // Add click feedback animation
+  highScoreButton.classList.add('scale-in');
+  
+  // Temporarily disable button to prevent rapid clicks
+  (highScoreButton as HTMLButtonElement).disabled = true;
+  
+  try {
+    // Check if high score system is available before showing leaderboard
+    const highScoreManager = HighScoreManager.getInstance();
+    if (!highScoreManager.isReady()) {
+      // Show offline message instead of trying to load leaderboard
+      const statusElement = document.getElementById('score-status');
+      if (statusElement) {
+        statusElement.textContent = 'High scores are currently unavailable';
+        statusElement.className = 'score-status error';
+        
+        // Clear message after a few seconds
+        setTimeout(() => {
+          statusElement.textContent = '';
+          statusElement.className = 'score-status';
+        }, 3000);
+      }
+      return;
+    }
+    
+    setTimeout(async () => {
+      try {
+        await showLeaderboard();
+      } catch (error) {
+        console.error('Failed to show leaderboard:', error);
+        // Show user-friendly error message
+        const statusElement = document.getElementById('score-status');
+        if (statusElement) {
+          statusElement.textContent = 'Failed to load leaderboard. Please try again.';
+          statusElement.className = 'score-status error';
+          
+          setTimeout(() => {
+            statusElement.textContent = '';
+            statusElement.className = 'score-status';
+          }, 3000);
+        }
+      } finally {
+        // Clean up button animation and re-enable
+        highScoreButton.classList.remove('scale-in');
+        (highScoreButton as HTMLButtonElement).disabled = false;
+      }
+    }, 100);
+    
+  } catch (error) {
+    console.error('Error handling high score button click:', error);
+    highScoreButton.classList.remove('scale-in');
+    (highScoreButton as HTMLButtonElement).disabled = false;
+    
+    // Show error message to user
+    const statusElement = document.getElementById('score-status');
+    if (statusElement) {
+      statusElement.textContent = 'An error occurred. Please try again.';
+      statusElement.className = 'score-status error';
+      
+      setTimeout(() => {
+        statusElement.textContent = '';
+        statusElement.className = 'score-status';
+      }, 3000);
+    }
+  }
+});
+
+leaderboardClose.addEventListener('click', () => {
+  hideLeaderboard();
+});
+
+// Close leaderboard when clicking outside the content
+leaderboardModal.addEventListener('click', (event) => {
+  if (event.target === leaderboardModal) {
+    hideLeaderboard();
+  }
+});
+
 // Handle window resize
 window.addEventListener('resize', () => {
   gameEngine.resize(window.innerWidth, window.innerHeight);
 });
+
+// Initialize high score button visibility
+updateHighScoreButtonVisibility();
 
 // Initialize with splash screen
 showSplashScreen();

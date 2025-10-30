@@ -43,7 +43,34 @@
       <div class="game-over-screen" id="game-over-screen" style="display: none;">
         <h2 class="game-over-title">Game Over!</h2>
         <p class="final-score">Final Score: <span id="final-score-value">0</span></p>
-        <button class="restart-button" id="restart-button">Play Again</button>
+        <p class="score-status" id="score-status"></p>
+        
+        <div class="game-over-buttons">
+          <button class="restart-button" id="restart-button">Play Again</button>
+          <button class="high-score-button" id="high-score-button">High Scores</button>
+        </div>
+      </div>
+      
+      <div class="leaderboard-modal" id="leaderboard-modal" style="display: none;">
+        <div class="leaderboard-content">
+          <div class="leaderboard-header">
+            <h3>High Scores</h3>
+            <button class="close-button" id="leaderboard-close">×</button>
+          </div>
+          
+          <div class="leaderboard-body">
+            <div class="loading-indicator" id="leaderboard-loading">Loading...</div>
+            <div class="error-message" id="leaderboard-error" style="display: none;"></div>
+            
+            <div class="leaderboard-list" id="leaderboard-list">
+              <!-- Dynamic content populated by JavaScript -->
+            </div>
+          </div>
+          
+          <div class="leaderboard-footer">
+            <p class="last-updated">Last updated: <span id="last-updated-time"></span></p>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="main.ts" defer></script>

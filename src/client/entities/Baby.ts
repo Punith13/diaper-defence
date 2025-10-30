@@ -16,6 +16,8 @@ export class Baby extends Entity {
   private centerX: number = 0; // Center position for oscillation
   private gameTime: number = 0; // Track total game time for difficulty scaling
   private lastShootRateUpdate: number = 0; // Track when we last updated shoot rate
+  private initialDelay: number = 5000; // 5 second delay before first poop
+  private hasStartedShooting: boolean = false; // Track if we've started shooting
   
   // Shooting mechanics
   private onShootCallback: ((baby: Baby) => void) | undefined;
@@ -46,8 +48,8 @@ export class Baby extends Entity {
     this.setPosition(x, y, 0);
     this.onShootCallback = onShoot;
     
-    // Initialize random shooting timer
-    this.resetShootTimer();
+    // Initialize with initial delay before first poop
+    this.shootTimer = this.initialDelay;
   }
 
   /**
@@ -84,6 +86,13 @@ export class Baby extends Entity {
     
     if (this.shootTimer <= 0) {
       this.shoot();
+      
+      // After first shot, use normal shooting intervals
+      if (!this.hasStartedShooting) {
+        this.hasStartedShooting = true;
+        console.log('Baby started shooting after initial delay');
+      }
+      
       this.resetShootTimer();
     }
   }
@@ -250,7 +259,8 @@ export class Baby extends Entity {
     this.lastShootRateUpdate = 0;
     this.shootInterval = 2000; // Reset to initial interval
     this.oscillationPhase = 0;
-    this.resetShootTimer();
+    this.hasStartedShooting = false; // Reset shooting state
+    this.shootTimer = this.initialDelay; // Reset to initial delay
     this.setPosition(this.centerX, this.position.y, this.position.z);
     this.resetExpression(); // Reset to crying expression
   }

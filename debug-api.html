@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007cba; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        .output { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; white-space: pre-wrap; font-family: monospace; }
+        .error { background: #ffe6e6; border-left: 4px solid #ff0000; }
+        .success { background: #e6ffe6; border-left: 4px solid #00aa00; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Diaper Defense API Debug Tool</h1>
+    
+    <div class="section">
+        <h2>1. Health Check</h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Redis Debug</h2>
+        <button onclick="testRedis()">Test Redis Operations</button>
+        <div id="redis-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Save Score Test</h2>
+        <input type="number" id="test-score" placeholder="Score" value="1000">
+        <input type="number" id="test-time" placeholder="Game Time (ms)" value="30000">
+        <input type="text" id="test-username" placeholder="Username (optional)">
+        <button onclick="testSaveScore()">Save Test Score</button>
+        <div id="save-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Get High Scores</h2>
+        <button onclick="testGetScores()">Get High Scores</button>
+        <div id="scores-output" class="output"></div>
+    </div>
+    
+    <div class="section">
+        <h2>5. Get User Best</h2>
+        <button onclick="testGetUserBest()">Get User Best Score</button>
+        <div id="user-best-output" class="output"></div>
+    </div>
+
+    <script>
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log(`Making request to: ${url}`);
+                console.log('Options:', options);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: data
+                };
+            } catch (error) {
+                console.error('Request failed:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+        
+        function displayResult(elementId, result) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (result.success) {
+                element.className = 'output success';
+                element.textContent = `[${timestamp}] SUCCESS (${result.status})\n${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                element.className = 'output error';
+                element.textContent = `[${timestamp}] ERROR\n${result.error || JSON.stringify(result.data, null, 2)}`;
+            }
+        }
+        
+        async function testHealth() {
+            const result = await makeRequest('/api/health');
+            displayResult('health-output', result);
+        }
+        
+        async function testRedis() {
+            const result = await makeRequest('/api/debug/redis');
+            displayResult('redis-output', result);
+        }
+        
+        async function testSaveScore() {
+            const score = parseInt(document.getElementById('test-score').value) || 1000;
+            const gameTime = parseInt(document.getElementById('test-time').value) || 30000;
+            const username = document.getElementById('test-username').value || undefined;
+            
+            const requestData = {
+                score,
+                gameTime,
+                username,
+                sessionId: `debug-${Date.now()}`,
+                gameVersion: '1.0.0',
+                timestamp: Date.now()
+            };
+            
+            const result = await makeRequest('/api/save-score', {
+                method: 'POST',
+                body: JSON.stringify(requestData)
+            });
+            displayResult('save-output', result);
+        }
+        
+        async function testGetScores() {
+            const result = await makeRequest('/api/high-scores');
+            displayResult('scores-output', result);
+        }
+        
+        async function testGetUserBest() {
+            const result = await makeRequest('/api/user-best');
+            displayResult('user-best-output', result);
+        }
+        
+        // Auto-run health check on page load
+        window.addEventListener('load', () => {
+            testHealth();
+        });
+    </script>
+</body>
+</html>
